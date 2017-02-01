@@ -28,13 +28,47 @@ port(
 end cache;
 
 architecture arch of cache is
--- declare signals here
 
+-- State definitions
+-- A:
+-- B:
+-- C:
+-- D:
+-- E:
+-- F:
+--- TODO: Define states based on diagram.
+type state_type is (A,B,C,D,E,F);
 
+-- Current and next state signals
+-- Entry point is state A.
+signal current_state: state_type := A;
+signal next_state: state_type;
 
 begin
--- make circuits here
 
+-- State change handling process, synchronized with clock signal.
+state_change : process(clock)
 
+begin
+	
+	if rising_edge(clock) then
+		current_state <= next_state;
+	end if;
+
+end process state_change;
+
+-- State behavioural handling process, synchronized with current state changes.
+state_behaviour : process(current_state)
+		
+begin
+	-- Branch to behavioural segment based on current state signal.
+	case current_state is
+		when A =>
+		when B =>
+		when C =>
+		when D =>
+		when E =>
+	
+end process state_behaviour;
 
 end arch;
