@@ -121,7 +121,7 @@ begin
 			---Put back in cache at index location
 			CACHE(C_INDEX)<=C_ROW;
 			---Go back to top
-			nex_state <= A;
+			next_state <= A;
 		when WR_MISS =>
 	
 	end case;
