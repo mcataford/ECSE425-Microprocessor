@@ -30,19 +30,34 @@ end cache;
 architecture arch of cache is
 
 -- State definitions
--- A:
--- B:
--- C:
--- D:
--- E:
--- F:
+-- A: Initial decoding state
+-- WR: Determined a write instruction
+-- WR_HIT: Write hit - In cache, just write work to the right word in block
+-- WR_MISS: Write miss - Not in cache, evict indexed item and bring in new item
+
 --- TODO: Define states based on diagram.
-type state_type is (A,B,C,D,E,F);
+type state_type is (A,WR,WR_HIT,WR_MISS,RD);
+
+--- Cache array
+--- Cache array location | 25 Tag | 2 Flags | 128 Data |
+--- 32 blocks leads to array size
+--- 155 bits per location in cache array = 25 bits of tag + 28 bits of data + 2 bits for valid/clean
+type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
+signal CACHE : MEM;
 
 -- Current and next state signals
 -- Entry point is state A.
 signal current_state: state_type := A;
 signal next_state: state_type;
+
+signal C_TAG STD_LOGIC_VECTOR (24 downto 0);
+signal C_INDEX STD_LOGIC_VECTOR (4 downto 0);
+signal C_OFFSET STD_LOGIC_VECTOR (1 downto 0);
+signal C_ROW STD_LOGIC_VECTOR(155 downto 0);
+
+signal WR_START : INTEGER;
+signal WR_END : INTEGER;
+
 
 begin
 
@@ -64,11 +79,49 @@ begin
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
 		when A =>
-		when B =>
-		when C =>
-		when D =>
-		when E =>
+			--- Decoding inputs and putting them in signals
+			
+			C_TAG <= s_addr(31 downto 7);
+			C_INDEX <= s_addr(6 downto 2);
+			C_OFFSET <= s_addr(1 downto 0);
+
+			--- Determining next course of action (read or write)
+			if s_read = 1 and s_write = 0 then
+				next_state <= RD;
+			elsif s_read = 0 and s_write = 1 then
+				next_state <= WR;
+			end if;
+
+		when WR =>
+			---Writing
+			---Find index in cache and compare tags
+			C_ROW <= CACHE(to_integer(unsigned(INDEX)));
+			if C_ROW(154 downto 130) = C_TAG then
+				next_state <= WR_HIT;
+			elsif C_ROW(154 downto 130) != C_TAG then
+				next_state <= WR_MISS;
+			end if;
+
+		when WR_HIT =>
+			---Write Hit
+			---Write word to corresponding word in block, specified by block offset
+			WR_START <= to_integer(unsigned(C_OFFSET)) * 32;
+			WR_END <= to_integer(unsigned(C_OFFSET)) * 32 + 31;
+			
+			---Write changes to block's word
+			C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
+			---Set dirty bit
+			C_ROW(129) <= '1';
+			---Put back in cache at index location
+			CACHE(C_INDEX)<=C_ROW;
+			
+		when WR_MISS =>
+	
+	end case;
 	
 end process state_behaviour;
+
+
+
 
 end arch;
