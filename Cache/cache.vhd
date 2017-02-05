@@ -41,7 +41,7 @@ type state_type is (A,WR,WR_HIT,WR_MISS,RD);
 --- Cache array
 --- Cache array location | 25 Tag | 2 Flags | 128 Data |
 --- 32 blocks leads to array size
---- 155 bits per location in cache array = 25 bits of tag + 28 bits of data + 2 bits for valid/clean
+--- 155 bits per location in cache array = 25 bits of tag + 2 bits dirty/valid + 128 bits of data
 type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
 signal CACHE : MEM;
 
@@ -105,6 +105,12 @@ begin
 		when WR_HIT =>
 			---Write Hit
 			---Write word to corresponding word in block, specified by block offset
+			---WR_START is the LSB of the word being written to
+			---WR_END is the MSB of the word being written to
+			---Example: given address has offset 2 means third word from the right in block
+			---C_ROW = |Tag|Flags|Word|>Word<|Word|Word|
+			---Its LSB is WR_START and MSB is WR_END
+
 			WR_START <= to_integer(unsigned(C_OFFSET)) * 32;
 			WR_END <= to_integer(unsigned(C_OFFSET)) * 32 + 31;
 			
@@ -114,7 +120,8 @@ begin
 			C_ROW(129) <= '1';
 			---Put back in cache at index location
 			CACHE(C_INDEX)<=C_ROW;
-			
+			---Go back to top
+			nex_state <= A;
 		when WR_MISS =>
 	
 	end case;

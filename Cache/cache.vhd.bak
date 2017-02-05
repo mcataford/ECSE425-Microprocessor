@@ -41,7 +41,7 @@ type state_type is (A,WR,WR_HIT,WR_MISS,RD);
 --- Cache array
 --- Cache array location | 25 Tag | 2 Flags | 128 Data |
 --- 32 blocks leads to array size
---- 155 bits per location in cache array = 25 bits of tag + 28 bits of data + 2 bits for valid/clean
+--- 155 bits per location in cache array = 25 bits of tag + 2 bits dirty/valid + 128 bits of data
 type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
 signal CACHE : MEM;
 
@@ -116,6 +116,8 @@ begin
 			CACHE(C_INDEX)<=C_ROW;
 			
 		when WR_MISS =>
+	
+	end case;
 	
 end process state_behaviour;
 
