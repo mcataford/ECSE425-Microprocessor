@@ -50,10 +50,10 @@ signal CACHE : MEM;
 signal current_state: state_type := A;
 signal next_state: state_type;
 
-signal C_TAG STD_LOGIC_VECTOR (24 downto 0);
-signal C_INDEX STD_LOGIC_VECTOR (4 downto 0);
-signal C_OFFSET STD_LOGIC_VECTOR (1 downto 0);
-signal C_ROW STD_LOGIC_VECTOR(155 downto 0);
+signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
+signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
+signal C_OFFSET : STD_LOGIC_VECTOR (1 downto 0);
+signal C_ROW : STD_LOGIC_VECTOR(155 downto 0);
 
 signal WR_START : INTEGER;
 signal WR_END : INTEGER;
@@ -63,42 +63,38 @@ begin
 
 -- State change handling process, synchronized with clock signal.
 state_change : process(clock)
-
 begin
-	
 	if rising_edge(clock) then
 		current_state <= next_state;
 	end if;
-
 end process state_change;
 
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(current_state)
-		
 begin
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
 		when A =>
-			--- Decoding inputs and putting them in signals
-			
+			--- Decoding inputs and putting them in signals	
 			C_TAG <= s_addr(31 downto 7);
 			C_INDEX <= s_addr(6 downto 2);
 			C_OFFSET <= s_addr(1 downto 0);
-
 			--- Determining next course of action (read or write)
-			if s_read = 1 and s_write = 0 then
+			if (s_read == 1 AND s_write == 0) then
 				next_state <= RD;
-			elsif s_read = 0 and s_write = 1 then
+			elsif (s_read == 0 AND s_write == 1) then
 				next_state <= WR;
+			elsif
+			  next_state <= A;
 			end if;
 
 		when WR =>
 			---Writing
 			---Find index in cache and compare tags
 			C_ROW <= CACHE(to_integer(unsigned(INDEX)));
-			if C_ROW(154 downto 130) = C_TAG then
+			if (C_ROW(154 downto 130) == C_TAG) then
 				next_state <= WR_HIT;
-			elsif C_ROW(154 downto 130) != C_TAG then
+			elsif (C_ROW(154 downto 130) != C_TAG) then
 				next_state <= WR_MISS;
 			end if;
 
@@ -123,12 +119,21 @@ begin
 			---Go back to top
 			next_state <= A;
 		when WR_MISS =>
+		
+		when RD =>
+		  ---Reading
+		  ---Find index in cache and compare tags
+			C_ROW <= CACHE(to_integer(unsigned(INDEX)));
+			if (C_ROW(154 downto 130) == C_TAG) then
+				m_read <= 0;
+				--s_readdata <= ;
+				next_state <= A;
+			elsif (C_ROW(154 downto 130) != C_TAG) then
+			  m_read <= 1;
+				next_state <= A;
+			end if;
 	
 	end case;
-	
 end process state_behaviour;
-
-
-
 
 end arch;
