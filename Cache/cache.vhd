@@ -36,7 +36,7 @@ architecture arch of cache is
 -- WR_MISS: Write miss - Not in cache, evict indexed item and bring in new item
 
 --- TODO: Define states based on diagram.
-type state_type is (A,WR,WR_HIT,WB,RD);
+type state_type is (A,WR,WR_HIT,WB,WR_MISS,RD);
 
 --- Cache array
 --- Cache array location | 25 Tag | 2 Flags | 128 Data |
@@ -140,6 +140,7 @@ begin
 			next_state <= WR_MISS;
 
 		when WR_MISS =>
+			
 			
 			
 		
