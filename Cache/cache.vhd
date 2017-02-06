@@ -36,7 +36,7 @@ architecture arch of cache is
 -- WR_MISS: Write miss - Not in cache, evict indexed item and bring in new item
 
 --- TODO: Define states based on diagram.
-type state_type is (A,WR,WR_HIT,WB,WR_MISS,RD);
+type state_type is (ENTRY,DECODE,WR,WR_HIT,WR_MISS,WR_WB,RD,MEM_WAIT);
 
 --- Cache array
 --- Cache array location | 25 Tag | 2 Flags | 128 Data |
@@ -47,16 +47,13 @@ signal CACHE : MEM;
 
 -- Current and next state signals
 -- Entry point is state A.
-signal current_state: state_type := A;
+signal current_state: state_type := ENTRY;
 signal next_state: state_type;
 
 signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
 signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
 signal C_OFFSET : STD_LOGIC_VECTOR (1 downto 0);
-signal C_ROW : STD_LOGIC_VECTOR(155 downto 0);
-
--- Temporary line for a cache row
-signal CACHE_DATA : STD_LOGIC_VECTOR(154 downto 0);
+signal C_ROW : STD_LOGIC_VECTOR(154 downto 0);
 
 signal WR_START : INTEGER;
 signal WR_END : INTEGER;
@@ -75,29 +72,38 @@ end process state_change;
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(current_state)
 begin
+	-- Make init state at some point
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
-		when A =>
+		when ENTRY =>
+			if(s_read = 0 or s_write = 0) then
+				next_state <= ENTRY;
+			else
+				next_state <= DECODE;
+			end if;
+		
+		when DECODE =>
+			waitrequest <= '1';
 			--- Decoding inputs and putting them in signals	
 			C_TAG <= s_addr(31 downto 7);
 			C_INDEX <= s_addr(6 downto 2);
 			C_OFFSET <= s_addr(1 downto 0);
 			--- Determining next course of action (read or write)
-			if (s_read == 1 AND s_write == 0) then
+			if (s_read = '1' AND s_write = '0') then
 				next_state <= RD;
-			elsif (s_read == 0 AND s_write == 1) then
+			elsif (s_read = '0' AND s_write = '1') then
 				next_state <= WR;
-			elsif
+			else
 			  next_state <= A;
 			end if;
 
 		when WR =>
 			---Writing
 			---Find index in cache and compare tags
-			C_ROW <= CACHE(to_integer(unsigned(INDEX)));
-			if (C_ROW(154 downto 130) == C_TAG) then
+			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
+			if (C_ROW(154 downto 130) = C_TAG) then
 				next_state <= WR_HIT;
-			elsif (C_ROW(154 downto 130) != C_TAG) then
+			elsif (C_ROW(154 downto 130) /= C_TAG) then
 				next_state <= WR_MISS;
 			end if;
 
@@ -118,29 +124,46 @@ begin
 			---Set dirty bit
 			C_ROW(129) <= '1';
 			---Put back in cache at index location
-			CACHE(C_INDEX)<=C_ROW;
+			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
+			---Deassert waitrequest
+			waitrequest <= '0';
 			---Go back to top
-			next_state <= A;
-		when WB =>
+			next_state <= ENTRY;
+
+
+		when WR_MISS =>
 		  --Writing back is done in 3 stages using the Avalon interface:
 		  --memwrite / data and address are asserted
 		  --They are maintained while waitrequest is asserted by the slave
 		  --When waitrequest is deasserted, the signals are deasserted on the master's end.
-			CACHE_ROW <= CACHE(C_INDEX);
+			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 
 			FOR i in 0 to 31 LOOP
 		  		m_write <= '1';
-				m_writedata <= CACHE_ROW(127-8*i downto 119-8*i);
+				m_writedata <= C_ROW(127-8*i downto 119-8*i);
 				m_addr <= C_INDEX;
-
+				---Cannot use
+			
 				wait until falling_edge(m_waitrequest);
 
 				m_write <= '0';
 			END LOOP;
-			next_state <= WR_MISS;
+			next_state <= WR_WB;
 
-		when WR_MISS =>
+
+		when WR_WB =>
 			
+			C_ROW(154 downto 130) <= C_TAG;
+
+			m_read <= '1';
+
+			
+			FOR i in 0 to 31 LOOP
+				C_ROW(127-8*i downto 119-8*i) <= m_readdata;
+			END LOOP;
+			m_read <= '0';
+			
+			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			
 			
 		
@@ -156,6 +179,9 @@ begin
 			  m_read <= 1;
 				next_state <= A;
 			end if;
+
+		when MEM_WAIT =>
+			
 	
 	end case;
 end process state_behaviour;
