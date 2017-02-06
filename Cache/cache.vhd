@@ -131,7 +131,7 @@ begin
 			next_state <= ENTRY;
 
 
-		when WR_MISS =>
+		when WR_WB =>
 		  --Writing back is done in 3 stages using the Avalon interface:
 		  --memwrite / data and address are asserted
 		  --They are maintained while waitrequest is asserted by the slave
@@ -142,28 +142,12 @@ begin
 		  		m_write <= '1';
 				m_writedata <= C_ROW(127-8*i downto 119-8*i);
 				m_addr <= C_INDEX;
-				---Cannot use
-			
+							
 				wait until falling_edge(m_waitrequest);
 
 				m_write <= '0';
 			END LOOP;
 			next_state <= WR_WB;
-
-
-		when WR_WB =>
-			
-			C_ROW(154 downto 130) <= C_TAG;
-
-			m_read <= '1';
-
-			
-			FOR i in 0 to 31 LOOP
-				C_ROW(127-8*i downto 119-8*i) <= m_readdata;
-			END LOOP;
-			m_read <= '0';
-			
-			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			
 			
 		
@@ -182,7 +166,17 @@ begin
 
 		when MEM_WAIT =>
 			
-	
+			while true loop
+				if(m_read = '1') then
+					if(m_waitrequest = '0') then
+						next_state <= RD_MISS
+					end if
+				if(m_write = '1') then
+					if(m_waitrequest = '0') then
+						next_state <= WR_WB;
+					end if
+				end if
+			end loop;
 	end case;
 end process state_behaviour;
 

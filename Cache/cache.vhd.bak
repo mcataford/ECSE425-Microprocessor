@@ -47,7 +47,7 @@ signal CACHE : MEM;
 
 -- Current and next state signals
 -- Entry point is state A.
-signal current_state: state_type := A;
+signal current_state: state_type := ENTRY;
 signal next_state: state_type;
 
 signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
