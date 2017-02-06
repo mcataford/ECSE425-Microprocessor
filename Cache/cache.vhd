@@ -36,7 +36,7 @@ architecture arch of cache is
 -- WR_MISS: Write miss - Not in cache, evict indexed item and bring in new item
 
 --- TODO: Define states based on diagram.
-type state_type is (A,WR,WR_HIT,WR_MISS,RD);
+type state_type is (A,WR,WR_HIT,WB,RD);
 
 --- Cache array
 --- Cache array location | 25 Tag | 2 Flags | 128 Data |
@@ -54,6 +54,9 @@ signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
 signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
 signal C_OFFSET : STD_LOGIC_VECTOR (1 downto 0);
 signal C_ROW : STD_LOGIC_VECTOR(155 downto 0);
+
+-- Temporary line for a cache row
+signal CACHE_DATA : STD_LOGIC_VECTOR(154 downto 0);
 
 signal WR_START : INTEGER;
 signal WR_END : INTEGER;
@@ -118,7 +121,27 @@ begin
 			CACHE(C_INDEX)<=C_ROW;
 			---Go back to top
 			next_state <= A;
+		when WB =>
+		  --Writing back is done in 3 stages using the Avalon interface:
+		  --memwrite / data and address are asserted
+		  --They are maintained while waitrequest is asserted by the slave
+		  --When waitrequest is deasserted, the signals are deasserted on the master's end.
+			CACHE_ROW <= CACHE(C_INDEX);
+
+			FOR i in 0 to 31 LOOP
+		  		m_write <= '1';
+				m_writedata <= CACHE_ROW(127-8*i downto 119-8*i);
+				m_addr <= C_INDEX;
+
+				wait until falling_edge(m_waitrequest);
+
+				m_write <= '0';
+			END LOOP;
+			next_state <= WR_MISS;
+
 		when WR_MISS =>
+			
+			
 		
 		when RD =>
 		  ---Reading
