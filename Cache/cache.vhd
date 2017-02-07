@@ -147,7 +147,7 @@ begin
 				--Set m_write so memory knows we're writing to it
 				m_write <= '1';
 				--Set the address we are writing to equal to the one we are evicting from cache
-				m_addr <= C_INDEX;
+				m_addr <= s_addr;
 				--Send 8 bits to the memory
 				m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
 				--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
