@@ -36,7 +36,7 @@ architecture arch of cache is
 -- WR_MISS: Write miss - Not in cache, evict indexed item and bring in new item
 
 --- TODO: Define states based on diagram.
-type state_type is (ENTRY,DECODE,WR,WR_HIT,WR_MISS,WR_WB,RD,MEM_WAIT);
+type state_type is (ENTRY,DECODE,WR,WR_HIT,WR_MISS,WR_WB,RD,RD_HIT,RD_MISS,MEM_WAIT);
 
 --- Cache array
 --- Cache array location | 2 Flags | 25 Tag | 128 Data |
@@ -59,6 +59,8 @@ signal WR_START : INTEGER;
 signal WR_END : INTEGER;
 signal WR_placemark : INTEGER;
 
+signal mem_read : STD_LOGIC;
+signal mem_write : STD_LOGIC;
 
 begin
 
@@ -77,7 +79,7 @@ begin
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
 		when ENTRY =>
-			if(s_read = 0 or s_write = 0) then
+			if(s_read = '0' or s_write = '0') then
 				next_state <= ENTRY;
 			else
 				next_state <= DECODE;
@@ -95,7 +97,7 @@ begin
 			elsif (s_read = '0' AND s_write = '1') then
 				next_state <= WR;
 			else
-			  next_state <= A;
+			  next_state <= ENTRY;
 			end if;
 
 		when WR =>
@@ -105,7 +107,7 @@ begin
 			if (C_ROW(152 downto 128) = C_TAG) then
 				next_state <= WR_HIT;
 			elsif (C_ROW(152 downto 128) /= C_TAG) then
-				WR_placemark <= '0';
+				WR_placemark <= 0;
 				next_state <= WR_MISS;
 			end if;
 
@@ -132,6 +134,7 @@ begin
 			---Go back to top
 			next_state <= ENTRY;
 
+    when WR_MISS =>
 
 		when WR_WB =>
 		  --Writing back is done in 3 stages using the Avalon interface:
@@ -143,11 +146,11 @@ begin
 
 			--Check if cache location is dirty
 			--Only need to write back to memory if it has been changed since it was first pulled from memory
-			if(C_ROW(154) = '1) then
+			if(C_ROW(154) = '1') then
 				--Set m_write so memory knows we're writing to it
 				m_write <= '1';
 				--Set the address we are writing to equal to the one we are evicting from cache
-				m_addr <= s_addr;
+				m_addr <= to_integer(unsigned(s_addr));
 				--Send 8 bits to the memory
 				m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
 				--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
@@ -163,39 +166,71 @@ begin
 			--FROM THE RD_MISS STATE WE CAN GO TO WR_HIT AND WRITE TO THE NEWLY LOADED ITEM
 			next_state <= RD_MISS;
 			
-			
-		
 		when RD =>
 		  ---Reading
 		  ---Find index in cache and compare tags
-			C_ROW <= CACHE(to_integer(unsigned(INDEX)));
-			if (C_ROW(154 downto 130) == C_TAG) then
-				m_read <= 0;
-				--s_readdata <= ;
-				next_state <= A;
-			elsif (C_ROW(154 downto 130) != C_TAG) then
-			  m_read <= 1;
-				next_state <= A;
+			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
+			if (C_ROW(152 downto 128) = C_TAG) then
+				m_read <= '0';
+				mem_read <= '0';
+				next_state <= RD_HIT;
+			elsif (C_ROW(152 downto 128) /= C_TAG) then
+			  m_read <= '1';
+			  mem_read <= '1';
+				next_state <= RD_MISS;
 			end if;
+			
+		when RD_HIT =>
+		  ---Depending on the input address' offset, the proper 32 bit word block gets read from the cache
+		  ---There are four possible word blocks to choose from
+		  ---Once read, the program goes back to the starting state
+		  if(C_OFFSET = "00") then
+		    s_readdata <= C_ROW(31 downto 0);
+		    s_waitrequest <= '0';
+		    next_state <= ENTRY;
+		  elsif(C_OFFSET = "01") then
+		    s_readdata <= C_ROW(63 downto 32);
+		    s_waitrequest <= '0';
+		    next_state <= ENTRY;
+		  elsif(C_OFFSET = "10") then
+		    s_readdata <= C_ROW(95 downto 64);
+		    s_waitrequest <= '0';
+		    next_state <= ENTRY;
+		  elsif(C_OFFSET = "11") then
+		    s_readdata <= C_ROW(127 downto 96);
+		    s_waitrequest <= '0';
+		    next_state <= ENTRY;
+		  end if;
+		
+		when RD_MISS =>
+		  ---Must read data from memory, since it was not found in the cache
+		  for i in 0 to 3 loop
+		    s_readdata(7+8*i downto 8*i) <= m_readdata;
+		  end loop;
+		  m_read <= '0';
+			mem_read <= '0';
+		  s_waitrequest <= '0';
+		  next_state <= ENTRY;
 
 		when MEM_WAIT =>
 			--We are waiting until the memory has completed an operation, so we loop "forever"
 			while true loop
 				--If m_read is 1, then we are read from the memory, thus defining the return path to the calling state
-				if(m_read = '1') then
+				if(mem_read = '1') then
 					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the read state					
 					if(m_waitrequest = '0') then
-						next_state <= RD_MISS
-					end if
+						next_state <= RD_MISS;
+					end if;
+				end if;
 				--If m_write is 1, then we are writing to the memory, thus defining the return path to the calling state				
-				if(m_write = '1') then
+				if(mem_write = '1') then
 					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the write state
 					if(m_waitrequest = '0') then
 						--Increment WR_placemark so when we return to the WR_WB state it will know to send the next byte in the data set
 						WR_placemark <= WR_placemark + 1;
 						next_state <= WR_WB;
-					end if
-				end if
+					end if;
+				end if;
 			end loop;
 	end case;
 end process state_behaviour;
