@@ -160,6 +160,7 @@ begin
 				m_write <= '0';
 			end if;
 			--Proceed to reading the item from memory
+			--FROM THE RD_MISS STATE WE CAN GO TO WR_HIT AND WRITE TO THE NEWLY LOADED ITEM
 			next_state <= RD_MISS;
 			
 			

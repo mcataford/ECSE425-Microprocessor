@@ -124,7 +124,7 @@ begin
 			---Write changes to block's word
 			C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
 			---Set dirty bit
-			C_ROW(129) <= '1';
+			C_ROW(154) <= '1';
 			---Put back in cache at index location
 			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			---Deassert waitrequest
