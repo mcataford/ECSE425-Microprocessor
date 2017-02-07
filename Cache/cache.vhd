@@ -39,9 +39,9 @@ architecture arch of cache is
 type state_type is (ENTRY,DECODE,WR,WR_HIT,WR_MISS,WR_WB,RD,MEM_WAIT);
 
 --- Cache array
---- Cache array location | 25 Tag | 2 Flags | 128 Data |
+--- Cache array location | 2 Flags | 25 Tag | 128 Data |
 --- 32 blocks leads to array size
---- 155 bits per location in cache array = 25 bits of tag + 2 bits dirty/valid + 128 bits of data
+--- 155 bits per location in cache array = 2 bits dirty/valid + 25 bits of tag + 128 bits of data
 type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
 signal CACHE : MEM;
 
@@ -57,6 +57,7 @@ signal C_ROW : STD_LOGIC_VECTOR(154 downto 0);
 
 signal WR_START : INTEGER;
 signal WR_END : INTEGER;
+signal WR_placemark : INTEGER;
 
 
 begin
@@ -83,7 +84,7 @@ begin
 			end if;
 		
 		when DECODE =>
-			waitrequest <= '1';
+			s_waitrequest <= '1';
 			--- Decoding inputs and putting them in signals	
 			C_TAG <= s_addr(31 downto 7);
 			C_INDEX <= s_addr(6 downto 2);
@@ -101,9 +102,10 @@ begin
 			---Writing
 			---Find index in cache and compare tags
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
-			if (C_ROW(154 downto 130) = C_TAG) then
+			if (C_ROW(152 downto 128) = C_TAG) then
 				next_state <= WR_HIT;
-			elsif (C_ROW(154 downto 130) /= C_TAG) then
+			elsif (C_ROW(152 downto 128) /= C_TAG) then
+				WR_placemark <= '0';
 				next_state <= WR_MISS;
 			end if;
 
@@ -113,7 +115,7 @@ begin
 			---WR_START is the LSB of the word being written to
 			---WR_END is the MSB of the word being written to
 			---Example: given address has offset 2 means third word from the right in block
-			---C_ROW = |Tag|Flags|Word|>Word<|Word|Word|
+			---C_ROW = |Flags|Tag|Word|>Word<|Word|Word|
 			---Its LSB is WR_START and MSB is WR_END
 
 			WR_START <= to_integer(unsigned(C_OFFSET)) * 32;
@@ -126,7 +128,7 @@ begin
 			---Put back in cache at index location
 			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			---Deassert waitrequest
-			waitrequest <= '0';
+			s_waitrequest <= '0';
 			---Go back to top
 			next_state <= ENTRY;
 
@@ -136,18 +138,30 @@ begin
 		  --memwrite / data and address are asserted
 		  --They are maintained while waitrequest is asserted by the slave
 		  --When waitrequest is deasserted, the signals are deasserted on the master's end.
+						
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 
-			FOR i in 0 to 31 LOOP
-		  		m_write <= '1';
-				m_writedata <= C_ROW(127-8*i downto 119-8*i);
+			--Check if cache location is dirty
+			--Only need to write back to memory if it has been changed since it was first pulled from memory
+			if(C_ROW(154) = '1) then
+				--Set m_write so memory knows we're writing to it
+				m_write <= '1';
+				--Set the address we are writing to equal to the one we are evicting from cache
 				m_addr <= C_INDEX;
-							
-				wait until falling_edge(m_waitrequest);
-
+				--Send 8 bits to the memory
+				m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
+				--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
+				--When WR_placemark reaches 15, we will be writing the last 8 bits of the set to memory. When WR_placemark is 16, there are no more bits to write and writing is complete
+				--WR_placemark is incremented in each wait cycle in the MEM_WAIT state, thus incrementing for the next byte to be written as necessary.
+				while WR_placemark < 16	loop
+					next_state <= MEM_WAIT;
+				end loop;
+				--Done writing to memory at this point so we can set m_write low.
 				m_write <= '0';
-			END LOOP;
-			next_state <= WR_WB;
+			end if;
+			--Proceed to reading the item from memory
+			--FROM THE RD_MISS STATE WE CAN GO TO WR_HIT AND WRITE TO THE NEWLY LOADED ITEM
+			next_state <= RD_MISS;
 			
 			
 		
@@ -165,14 +179,20 @@ begin
 			end if;
 
 		when MEM_WAIT =>
-			
+			--We are waiting until the memory has completed an operation, so we loop "forever"
 			while true loop
+				--If m_read is 1, then we are read from the memory, thus defining the return path to the calling state
 				if(m_read = '1') then
+					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the read state					
 					if(m_waitrequest = '0') then
 						next_state <= RD_MISS
 					end if
+				--If m_write is 1, then we are writing to the memory, thus defining the return path to the calling state				
 				if(m_write = '1') then
+					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the write state
 					if(m_waitrequest = '0') then
+						--Increment WR_placemark so when we return to the WR_WB state it will know to send the next byte in the data set
+						WR_placemark <= WR_placemark + 1;
 						next_state <= WR_WB;
 					end if
 				end if
