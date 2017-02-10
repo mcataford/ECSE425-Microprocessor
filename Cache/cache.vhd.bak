@@ -62,6 +62,7 @@ signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
 signal C_OFFSET : STD_LOGIC_VECTOR (1 downto 0);
 signal C_ROW : STD_LOGIC_VECTOR(154 downto 0);
 signal C_DATA : STD_LOGIC_VECTOR (127 downto 0);
+signal C_NEW_ADDR : STD_LOGIC_VECTOR (31 downto 0);
 
 signal WR_START : INTEGER;
 signal WR_END : INTEGER;
@@ -241,7 +242,8 @@ begin
 
 			
 			--Set the address we are writing to equal to the one we are evicting from cache
-			m_addr <= (to_integer(unsigned((C_ROW(152 downto 128) & C_INDEX & "00"))));
+			C_NEW_ADDR <= C_ROW(152 downto 128) & C_INDEX & "00";
+			m_addr <= (to_integer(unsigned(C_NEW_ADDR)));
 			--Send 8 bits to the memory
 			m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
 			--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input

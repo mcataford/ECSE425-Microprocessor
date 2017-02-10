@@ -76,6 +76,8 @@ signal t_addr : STD_LOGIC_VECTOR (31 downto 0);
 
 begin
 
+
+
 -- State change handling process, synchronized with clock signal.
 state_change : process(clock)
 begin
@@ -87,6 +89,10 @@ end process state_change;
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(current_state)
 begin
+
+	-- Initialize cache to all 0
+	CACHE <= (others=> (others=>'0'));
+
 
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
