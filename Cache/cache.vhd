@@ -50,12 +50,12 @@ type state_type is (ENTRY,DECODE,CACHE_WRITE,CACHE_WRITE_HIT,CACHE_READ,CACHE_RE
 --- 32 blocks leads to array size
 --- 155 bits per location in cache array = 2 bits dirty/valid + 25 bits of tag + 128 bits of data
 type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
-signal CACHE : MEM;
+signal CACHE : MEM := (others=> (153 => '1', others=>'0'));
 
 -- Current and next state signals
 -- Entry point is state A.
 signal current_state: state_type := ENTRY;
-signal next_state: state_type;
+signal next_state: state_type := ENTRY;
 
 signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
 signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
@@ -76,29 +76,19 @@ signal t_addr : STD_LOGIC_VECTOR (31 downto 0);
 
 begin
 
-
-
--- State change handling process, synchronized with clock signal.
-state_change : process(clock)
-begin
-	if rising_edge(clock) then
-		current_state <= next_state;
-	end if;
-end process state_change;
-
 -- State behavioural handling process, synchronized with current state changes.
-state_behaviour : process(current_state)
+state_behaviour : process(clock)
 begin
-
-	-- Initialize cache to all 0
-	CACHE <= (others=> (others=>'0'));
-
+if rising_edge(clock) then
+	--Next state becomes current state.
+	current_state <= next_state;
 
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
 
 		-- Entry state - Waiting on CPU request
 		when ENTRY =>
+			report "DEBUG: S=ENTRY";
 			-- Setting of memory control signals low
 			m_read <= '0';
 			m_write <= '0';
@@ -107,17 +97,15 @@ begin
 			mem_read <= '0';
 			mem_write <= '0';
 
-			-- If no request received this clock edge, re-enter ENTRY
-			if(s_read = '0' or s_write = '0') then
-				next_state <= ENTRY;
-			
-			-- CPU wants something from the cache
-			else
+			-- If request, decode.
+			if(s_read = '1' OR s_write = '1') then
 				next_state <= DECODE;
 			end if;
+			
 		
 		-- Decode s_addr contents and proceed to the next appropriate state
 		when DECODE =>
+			report "DEBUG: S=DECODE";
 			
 			-- Set the s_waitrequest high as the slave has some work to do. This informs the master that it is working.
 			s_waitrequest <= '1';
@@ -143,6 +131,7 @@ begin
 		
 		-- The CPU requested a write to the cache. Must determine if hit or miss
 		when CACHE_WRITE =>
+			report "DEBUG: S=CACHE_WRITE";
 			
 			-- Find index in cache and compare tags. First load the cache row into C_ROW
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
@@ -168,6 +157,7 @@ begin
 
 		-- The CPU requested a write and the item it wanted to write to was in the cache.
 		when CACHE_WRITE_HIT =>
+			report "DEBUG: S=CACHE_WRITE_HIT";
 			
 			---Write word to corresponding word in block, specified by block offset
 			---WR_START is the LSB of the word being written to
@@ -193,6 +183,7 @@ begin
 			
 		-- The CPU requested a reach from the cache. Must determine if hit or miss.
 		when CACHE_READ =>
+			report "DEBUG: S=CACHE_READ";
 
 		  	-- Find index in cache and compare tags
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
@@ -217,6 +208,7 @@ begin
 			end if;
 			
 		when CACHE_READ_HIT =>
+			report "DEBUG: S=CACHE_READ_HIT";
 		  ---Depending on the input address' offset, the proper 32 bit word block gets read from the cache
 		  ---There are four possible word blocks to choose from
 		  ---Once read, the program goes back to the starting state
@@ -241,6 +233,7 @@ begin
 
 		
 		when MEMORY_EVICT =>
+			report "DEBUG: S=MEMORY_EVICT";
 		  --Writing back is done in 3 stages using the Avalon interface:
 		  --memwrite / data and address are asserted
 		  --They are maintained while waitrequest is asserted by the slave
@@ -249,7 +242,7 @@ begin
 			
 			--Set the address we are writing to equal to the one we are evicting from cache
 			C_NEW_ADDR <= C_ROW(152 downto 128) & C_INDEX & "00";
-			m_addr <= (to_integer(unsigned(C_NEW_ADDR)));
+			m_addr <= to_integer(unsigned(C_NEW_ADDR));
 			--Send 8 bits to the memory
 			m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
 			--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
@@ -270,11 +263,16 @@ begin
 			next_state <= MEMORY_READ;
 
 		when MEMORY_READ =>
+			report "DEBUG: S=MEMORY_READ";
 		  ---Must read data from memory, since it was not found in the cache
 	
-			while RD_placemark < 16 loop
+			--while RD_placemark < 16 loop
+			--	next_state <= MEMORY_WAIT;
+			--end loop;
+
+			if RD_placemark < 16 then
 				next_state <= MEMORY_WAIT;
-			end loop;
+			else
 			
 			-- Put the data items from memory in the row and build a new row with all its elements and place in the cache
 			C_ROW(127 downto 0) <= C_DATA;
@@ -298,10 +296,12 @@ begin
 				s_waitrequest <= '0';
 				next_state <= ENTRY;
 		  	end if;
+			end if;
 
 		when MEMORY_WAIT =>
+			report "DEBUG: S=MEMORY_WAIT";
 			--We are waiting until the memory has completed an operation, so we loop "forever"
-			while true loop
+			--while true loop
 
 				--If m_write is 1, then we are writing to the memory, thus defining the return path to the calling state				
 				if(mem_write = '1') then
@@ -319,10 +319,12 @@ begin
 						C_DATA(127-8*RD_placemark downto 119-8*RD_placemark) <= m_readdata;
 						RD_placemark <= RD_placemark + 1;
 						next_state <= MEMORY_READ;
-					end if;				
+					end if;		
+					report "MEMREAD WAIT";		
 				end if;
-			end loop;
+			--end loop;
 	end case;
+end if;
 end process state_behaviour;
 
 end arch;

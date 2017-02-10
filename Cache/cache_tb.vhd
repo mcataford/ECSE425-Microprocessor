@@ -115,8 +115,24 @@ end process;
 test_process : process
 begin
 
--- put your tests here
-	
+s_read <= '0';
+s_write <= '0';
+
+wait for 1 * clk_period;
+
+s_read <='1';
+s_addr <= "00000000000000000000000000000000";
+--s_writedata <= "11111111111111111111111111111111";
+
+wait until s_waitrequest = '0';
+
+s_read <= '0';
+s_write <= '0';
+s_addr <= (others => '0');
+s_writedata <= (others => '0');
+
+wait;
+
 end process;
 	
 end;

@@ -41,6 +41,7 @@ BEGIN
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
 				ram_block(address) <= writedata;
+				report "MEMORY: Stored.";
 			END IF;
 		read_address_reg <= address;
 		END IF;
