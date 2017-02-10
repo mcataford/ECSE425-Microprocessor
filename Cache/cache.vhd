@@ -50,7 +50,7 @@ type state_type is (ENTRY,DECODE,CACHE_WRITE,CACHE_WRITE_HIT,CACHE_READ,CACHE_RE
 --- 32 blocks leads to array size
 --- 155 bits per location in cache array = 2 bits dirty/valid + 25 bits of tag + 128 bits of data
 type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
-signal CACHE : MEM := (others=> (153 => '1', others=>'0'));
+signal CACHE : MEM := (others=> (15 => '1',others=>'0'));
 
 -- Current and next state signals
 -- Entry point is state A.
@@ -64,13 +64,10 @@ signal C_ROW : STD_LOGIC_VECTOR(154 downto 0);
 signal C_DATA : STD_LOGIC_VECTOR (127 downto 0);
 signal C_NEW_ADDR : STD_LOGIC_VECTOR (31 downto 0);
 
-signal WR_START : INTEGER;
-signal WR_END : INTEGER;
-signal WR_placemark : INTEGER;
-signal RD_placemark : INTEGER;
+signal mem_read : STD_LOGIC := '0';
+signal mem_write : STD_LOGIC := '0';
 
-signal mem_read : STD_LOGIC;
-signal mem_write : STD_LOGIC;
+signal temp : std_logic_vector(31 downto 0);
 
 signal t_addr : STD_LOGIC_VECTOR (31 downto 0);
 
@@ -78,10 +75,16 @@ begin
 
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(clock)
+variable WR_START : INTEGER range 0 to 31;
+variable WR_END : INTEGER range 0 to 31;
+
+variable WR_placemark : INTEGER range 0 to 16;
+variable RD_placemark : INTEGER range 0 to 16;
 begin
 if rising_edge(clock) then
 	--Next state becomes current state.
 	current_state <= next_state;
+	report "RD_Placemark: "& integer'image(RD_placemark);
 
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
@@ -142,15 +145,15 @@ if rising_edge(clock) then
 
 			-- If not match, there's a miss. Set various control signals and proceed to MEMORY_EVICT which evicts cache item to memory.
 			elsif ((C_ROW(152 downto 128) /= C_TAG) AND (C_ROW(154) = '1')) then
-				WR_placemark <= 0;
-				RD_placemark <= 0;
+				WR_placemark := 0;
+				RD_placemark := 0;
 				mem_write <= '1';
 				m_write <= '1';
 				next_state <= MEMORY_EVICT;
 
 			-- We want to write into something not in the cache but the thing currently in its location isn't dirty so doesnt need to be written to memory
 			else
-				RD_placemark <=0;
+				RD_placemark :=0;
 				m_read <= '1';
 				next_state <= MEMORY_READ;
 			end if;
@@ -166,8 +169,11 @@ if rising_edge(clock) then
 			---C_ROW = |Flags|Tag|Word|>Word<|Word|Word|
 			---Its LSB is WR_START and MSB is WR_END
 
-			WR_START <= to_integer(unsigned(C_OFFSET)) * 32;
-			WR_END <= to_integer(unsigned(C_OFFSET)) * 32 + 31;
+			WR_START := to_integer(unsigned(C_OFFSET)) * 32;
+			WR_END := to_integer(unsigned(C_OFFSET)) * 32 + 31;
+
+			report "WR_START: " & integer'image(WR_START);
+			report "WR_END: " & integer'image(WR_END);
 			
 			---Write changes to block's word
 			C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
@@ -194,14 +200,14 @@ if rising_edge(clock) then
 
 			-- If the tags do not match and the valid bit is set, proceed to evict the item addressed by s_addr to memory 
 			elsif ((C_ROW(152 downto 128) /= C_TAG) AND (C_ROW(153) = '1')) then
-			  	WR_placemark <= 0;
-				RD_placemark <= 0;
+			  	WR_placemark := 0;
+				RD_placemark := 0;
 			  	mem_read <= '1';
 				next_state <= MEMORY_EVICT;
 
 			-- Valid bit was not set so we can't read anything from cache but we also dont need to send anything back to memory
 			else
-				RD_placemark <= 0;
+				RD_placemark := 0;
 				m_read <= '1';
 				mem_read <= '1';
 				next_state <= MEMORY_READ;
@@ -308,7 +314,7 @@ if rising_edge(clock) then
 					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the write state
 					if(m_waitrequest = '0') then
 						--Increment WR_placemark so when we return to the WR_WB state it will know to send the next byte in the data set
-						WR_placemark <= WR_placemark + 1;
+						WR_placemark := WR_placemark + 1;
 						next_state <= MEMORY_EVICT;
 					end if;	
 
@@ -316,8 +322,8 @@ if rising_edge(clock) then
 				elsif(mem_read = '1') then
 					--If memory sets m_waitrequest low it has finished its memory operation and we can return to the read state					
 					if(m_waitrequest = '0') then
-						C_DATA(127-8*RD_placemark downto 119-8*RD_placemark) <= m_readdata;
-						RD_placemark <= RD_placemark + 1;
+						C_DATA(127-8*RD_placemark downto 120-8*RD_placemark) <= m_readdata;
+						RD_placemark := RD_placemark + 1;
 						next_state <= MEMORY_READ;
 					end if;		
 					report "MEMREAD WAIT";		
