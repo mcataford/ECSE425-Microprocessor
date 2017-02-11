@@ -49,7 +49,7 @@ type state_type is (ENTRY,DECODE,CACHE_WRITE,CACHE_WRITE_HIT,CACHE_READ,CACHE_RE
 --- Cache array location: || 2 Flags: Dirty/Valid | 25 Tag | 128 Data ||
 --- 32 blocks leads to array size
 --- 155 bits per location in cache array = 2 bits dirty/valid + 25 bits of tag + 128 bits of data
-type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(154 downto 0);
+type MEM is array (31 downto 0) of STD_LOGIC_VECTOR(137 downto 0);
 signal CACHE : MEM := (others=> (15 => '1',others=>'0'));
 
 -- Current and next state signals
@@ -57,10 +57,10 @@ signal CACHE : MEM := (others=> (15 => '1',others=>'0'));
 signal current_state: state_type := ENTRY;
 signal next_state: state_type := ENTRY;
 
-signal C_TAG : STD_LOGIC_VECTOR (24 downto 0);
+signal C_TAG : STD_LOGIC_VECTOR (7 downto 0);
 signal C_INDEX : STD_LOGIC_VECTOR (4 downto 0);
 signal C_OFFSET : STD_LOGIC_VECTOR (1 downto 0);
-signal C_ROW : STD_LOGIC_VECTOR(154 downto 0);
+signal C_ROW : STD_LOGIC_VECTOR(137 downto 0);
 signal C_DATA : STD_LOGIC_VECTOR (127 downto 0);
 signal C_NEW_ADDR : STD_LOGIC_VECTOR (31 downto 0);
 
@@ -75,8 +75,8 @@ begin
 
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(clock)
-variable WR_START : INTEGER range 0 to 31;
-variable WR_END : INTEGER range 0 to 31;
+variable WR_START : INTEGER range 0 to 127;
+variable WR_END : INTEGER range 0 to 127;
 
 variable WR_placemark : INTEGER range 0 to 16;
 variable RD_placemark : INTEGER range 0 to 16;
@@ -95,6 +95,10 @@ if rising_edge(clock) then
 			-- Setting of memory control signals low
 			m_read <= '0';
 			m_write <= '0';
+			s_waitrequest <= '0';
+
+			WR_placemark := 0;
+			RD_placemark := 0;
 
 			-- Internal memory control signals
 			mem_read <= '0';
@@ -114,7 +118,7 @@ if rising_edge(clock) then
 			s_waitrequest <= '1';
 
 			--- Decoding inputs and putting them in signals	
-			C_TAG <= s_addr(31 downto 7);
+			C_TAG <= s_addr(14 downto 7);
 			C_INDEX <= s_addr(6 downto 2);
 			C_OFFSET <= s_addr(1 downto 0);
 			
@@ -140,21 +144,18 @@ if rising_edge(clock) then
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 			
 			-- Compare cache's tag with the tag from s_addr. If match, there's a hit.
-			if (C_ROW(152 downto 128) = C_TAG) then
+			if (C_ROW(135 downto 128) = C_TAG) then
 				next_state <= CACHE_WRITE_HIT;
 
 			-- If not match, there's a miss. Set various control signals and proceed to MEMORY_EVICT which evicts cache item to memory.
-			elsif ((C_ROW(152 downto 128) /= C_TAG) AND (C_ROW(154) = '1')) then
+			elsif ((C_ROW(135 downto 128) /= C_TAG) AND (C_ROW(137) = '1')) then
 				WR_placemark := 0;
 				RD_placemark := 0;
-				mem_write <= '1';
-				m_write <= '1';
 				next_state <= MEMORY_EVICT;
 
 			-- We want to write into something not in the cache but the thing currently in its location isn't dirty so doesnt need to be written to memory
 			else
 				RD_placemark :=0;
-				m_read <= '1';
 				next_state <= MEMORY_READ;
 			end if;
 
@@ -177,9 +178,11 @@ if rising_edge(clock) then
 			
 			---Write changes to block's word
 			C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
+			
+
 			---Set dirty bit and valid bit
-			C_ROW(154) <= '1';
-			C_ROW(153) <= '1';
+			C_ROW(137) <= '1';
+			C_ROW(136) <= '1';
 			---Put back in cache at index location
 			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			---Deassert waitrequest indicating to CPU that the cache has written s_writedata to the cache
@@ -195,11 +198,11 @@ if rising_edge(clock) then
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 
 			-- If the tag in s_addr and the tag in the cache match there's a cache hit. Also, only read if valid bit is set.
-			if ((C_ROW(152 downto 128) = C_TAG) AND (C_ROW(153) = '1')) then
+			if ((C_ROW(135 downto 128) = C_TAG) AND (C_ROW(136) = '1')) then
 				next_state <= CACHE_READ_HIT;
 
 			-- If the tags do not match and the valid bit is set, proceed to evict the item addressed by s_addr to memory 
-			elsif ((C_ROW(152 downto 128) /= C_TAG) AND (C_ROW(153) = '1')) then
+			elsif ((C_ROW(135 downto 128) /= C_TAG) AND (C_ROW(136) = '1')) then
 			  	WR_placemark := 0;
 				RD_placemark := 0;
 			  	mem_read <= '1';
@@ -208,7 +211,6 @@ if rising_edge(clock) then
 			-- Valid bit was not set so we can't read anything from cache but we also dont need to send anything back to memory
 			else
 				RD_placemark := 0;
-				m_read <= '1';
 				mem_read <= '1';
 				next_state <= MEMORY_READ;
 			end if;
@@ -245,12 +247,18 @@ if rising_edge(clock) then
 		  --They are maintained while waitrequest is asserted by the slave
 		  --When waitrequest is deasserted, the signals are deasserted on the master's end.
 
+			mem_write <= '1';
+			m_write <= '1';
 			
 			--Set the address we are writing to equal to the one we are evicting from cache
-			C_NEW_ADDR <= C_ROW(152 downto 128) & C_INDEX & "00";
+			C_NEW_ADDR(1 downto 0) <= "00";		
+			C_NEW_ADDR(6 downto 2) <= C_INDEX;
+			C_NEW_ADDR(14 downto 7) <= C_ROW(135 downto 128);	
+			C_NEW_ADDR(31 downto 15) <= "00000000000000000";
+		
 			m_addr <= to_integer(unsigned(C_NEW_ADDR));
 			--Send 8 bits to the memory
-			m_writedata <= C_ROW(127-8*WR_placemark downto 119-8*WR_placemark);	
+			m_writedata <= C_ROW(127-8*WR_placemark downto 120-8*WR_placemark);	
 			--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
 			--When WR_placemark reaches 15, we will be writing the last 8 bits of the set to memory. When WR_placemark is 16, there are no more bits to write and writing is complete
 			--WR_placemark is incremented in each wait cycle in the MEM_WAIT state, thus incrementing for the next byte to be written as necessary.
@@ -263,7 +271,6 @@ if rising_edge(clock) then
 	
 			--Proceed to reading the item from memory
 
-			m_read <= '1';
 			mem_read <= '1';
 			m_addr <= to_integer(unsigned(s_addr));
 			next_state <= MEMORY_READ;
@@ -276,14 +283,17 @@ if rising_edge(clock) then
 			--	next_state <= MEMORY_WAIT;
 			--end loop;
 
+			m_read <= '1';
+			mem_read <= '1';
+
 			if RD_placemark < 16 then
 				next_state <= MEMORY_WAIT;
 			else
 			
 			-- Put the data items from memory in the row and build a new row with all its elements and place in the cache
 			C_ROW(127 downto 0) <= C_DATA;
-			C_ROW(152 downto 128) <= C_TAG;
-			C_ROW(154 downto 153) <= "01";
+			C_ROW(135 downto 128) <= C_TAG;
+			C_ROW(137 downto 136) <= "01";
 			CACHE(to_integer(unsigned(C_INDEX))) <= C_ROW;
 			
 		  	m_read <= '0';
@@ -315,6 +325,7 @@ if rising_edge(clock) then
 					if(m_waitrequest = '0') then
 						--Increment WR_placemark so when we return to the WR_WB state it will know to send the next byte in the data set
 						WR_placemark := WR_placemark + 1;
+						m_write <= '0';
 						next_state <= MEMORY_EVICT;
 					end if;	
 
@@ -324,6 +335,7 @@ if rising_edge(clock) then
 					if(m_waitrequest = '0') then
 						C_DATA(127-8*RD_placemark downto 120-8*RD_placemark) <= m_readdata;
 						RD_placemark := RD_placemark + 1;
+						m_read <= '0';
 						next_state <= MEMORY_READ;
 					end if;		
 					report "MEMREAD WAIT";		

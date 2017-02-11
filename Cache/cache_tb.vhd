@@ -120,9 +120,10 @@ s_write <= '0';
 
 wait for 1 * clk_period;
 
-s_read <='1';
-s_addr <= "00000000000000000000000000000000";
---s_writedata <= "11111111111111111111111111111111";
+s_read <='0';
+s_write <='1';
+s_addr <= "00000000000000000000110011111111";
+s_writedata <= "00000000110011000011001100110011";
 
 wait until s_waitrequest = '0';
 
@@ -142,7 +143,7 @@ s_write <= '0';
 wait for 1 * clk_period; 
 
 s_read <='1';
-s_addr <= "00000000000000000000000000000000";
+s_addr <= "00000000000000000000110011111111";
 --s_writedata <= "11111111111111111111111111111111";
 
 wait until s_waitrequest = '0';
@@ -152,6 +153,13 @@ s_write <= '0';
 
 s_addr <= (others => '0');
 s_writedata <= (others => '0');
+
+wait for 1*clk_period;
+
+s_read <= '1';
+s_addr <= "00000000000011110001100000000000";
+
+wait until s_waitrequest = '0';
 
 wait;
 
