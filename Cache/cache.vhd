@@ -124,6 +124,7 @@ if rising_edge(clock) then
 			
 			-- If the CPU wants to read something from the cache...
 			if (s_read = '1' AND s_write = '0') then
+				C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 				next_state <= CACHE_READ;
 
 			-- If the CPU wants to write something to the cache...
@@ -195,7 +196,7 @@ if rising_edge(clock) then
 			report "DEBUG: S=CACHE_READ";
 
 		  	-- Find index in cache and compare tags
-			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
+			--C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 
 			-- If the tag in s_addr and the tag in the cache match there's a cache hit. Also, only read if valid bit is set.
 			if ((C_ROW(135 downto 128) = C_TAG) AND (C_ROW(136) = '1')) then
@@ -211,7 +212,6 @@ if rising_edge(clock) then
 			-- Valid bit was not set so we can't read anything from cache but we also dont need to send anything back to memory
 			else
 				RD_placemark := 0;
-				mem_read <= '1';
 				next_state <= MEMORY_READ;
 			end if;
 			
@@ -283,10 +283,11 @@ if rising_edge(clock) then
 			--	next_state <= MEMORY_WAIT;
 			--end loop;
 
-			m_read <= '1';
-			mem_read <= '1';
+			
 
 			if RD_placemark < 16 then
+				m_read <= '1';
+				mem_read <= '1';
 				next_state <= MEMORY_WAIT;
 			else
 			

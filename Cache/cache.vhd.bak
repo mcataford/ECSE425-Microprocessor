@@ -177,10 +177,7 @@ if rising_edge(clock) then
 			report "WR_END: " & integer'image(WR_END);
 			
 			---Write changes to block's word
-			if(mem_read = '1') then
-				
-			else
-				C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
+			C_ROW(WR_END downto WR_START) <= s_writedata(31 downto 0);
 			
 
 			---Set dirty bit and valid bit
@@ -214,7 +211,6 @@ if rising_edge(clock) then
 			-- Valid bit was not set so we can't read anything from cache but we also dont need to send anything back to memory
 			else
 				RD_placemark := 0;
-				mem_read <= '1';
 				next_state <= MEMORY_READ;
 			end if;
 			
@@ -286,10 +282,11 @@ if rising_edge(clock) then
 			--	next_state <= MEMORY_WAIT;
 			--end loop;
 
-			m_read <= '1';
-			mem_read <= '1';
+			
 
 			if RD_placemark < 16 then
+				m_read <= '1';
+				mem_read <= '1';
 				next_state <= MEMORY_WAIT;
 			else
 			
