@@ -9,9 +9,9 @@ entity ALU is
 port(
 	CLOCK: in std_logic;
 	A,B: in std_logic_vector(31 downto 0);
-	ALU_CONTROL: in std_logic_vector(31 downto 0);
+	ALU_CONTROL: in std_logic_vector(5 downto 0);
 	OUTPUT: out std_logic_vector(31 downto 0);
-	ZERO: out std_logic;
+	ZERO: out std_logic
 );
 
 end entity;
@@ -25,8 +25,6 @@ process(CLOCK)
 begin 
 
 if rising_edge(CLOCK) then
-
-
 
 end if;
 
