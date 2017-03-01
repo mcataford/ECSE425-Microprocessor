@@ -24,6 +24,12 @@ process(CLOCK)
 
 begin 
 
+if rising_edge(CLOCK) then
+
+
+
+end if;
+
 end process;
 
 end architecture;
