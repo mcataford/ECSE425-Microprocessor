@@ -11,7 +11,7 @@ port(
 	A,B: in std_logic_vector(31 downto 0);
 	ALU_CONTROL: in std_logic_vector(5 downto 0);
 	OUTPUT: out std_logic_vector(31 downto 0);
-	ZERO: out std_logic
+	ZERO, OVERFLOW: out std_logic
 );
 
 end entity;
@@ -36,6 +36,8 @@ begin
 
 --Word-width full adder component instance.
 WFA: WORDFULLADDER port map(WFA_A,WFA_B,WFA_Cout,WFA_S);
+
+--TODO: Booth multiplier
 
 process(CLOCK)
 
