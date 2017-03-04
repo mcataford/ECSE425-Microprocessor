@@ -23,6 +23,10 @@ architecture ALU_impl of ALU is
 signal WFA_A, WFA_B, WFA_S: std_logic_vector(31 downto 0) := (others => '0');
 signal WFA_Cout: std_logic := '0';
 
+--Intermediate signals, LC interactions
+signal LC_A, LC_B, LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
+signal LC_MODE: std_logic_vector(1 downto 0) := "00";
+
 component WORDFULLADDER
 
 port(
@@ -33,12 +37,25 @@ port(
 
 end component;
 
+component LOGICCELL
+
+port(
+	A,B: in std_logic_vector(31 downto 0);
+	MODE: in std_logic_vector(1 downto 0);
+	OUTPUT: out std_logic_vector(31 downto 0)
+);
+
+end component;
+
 begin
 
 --Word-width full adder component instance.
 WFA: WORDFULLADDER port map(WFA_A,WFA_B,WFA_Cout,WFA_S);
 
 --Word-width multiplier component instance.
+
+--Logic cell component instance
+LC: LOGICCELL port map(LC_A, LC_B, LC_MODE, LC_OUTPUT);
 
 process(CLOCK)
 
