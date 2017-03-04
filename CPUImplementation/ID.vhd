@@ -15,6 +15,7 @@ entity ID is
 
         ---Outputs---
         PC_OUT : out std_logic_vector (31 downto 0);
+        SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
         REG_OUT1 : out std_logic_vector (31 downto 0);
         REG_OUT2 : out std_logic_vector (31 downto 0)
     )
@@ -37,7 +38,6 @@ architecture arch of ID is
 
             ---Outputs---
 
-            SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
             READ_DATA_OUT1 : out std_logic_vector (31 downto 0);
             READ_DATA_OUT2 : out std_logic_vector (31 downto 0)
             );
