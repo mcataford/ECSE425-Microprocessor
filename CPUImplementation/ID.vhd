@@ -11,6 +11,7 @@ entity ID is
         PC_IN : in std_logic_vector (31 downto 0);
         REG_DEST_SELECT : in std_logic;
         WB_DATA : in std_logic_vector (31 downto 0);
+        CLOCK : in std_logic;
 
         ---Outputs---
         PC_OUT : out std_logic_vector (31 downto 0);
@@ -36,6 +37,7 @@ architecture arch of ID is
 
             ---Outputs---
 
+            SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
             READ_DATA_OUT1 : out std_logic_vector (31 downto 0);
             READ_DATA_OUT2 : out std_logic_vector (31 downto 0)
             );
@@ -49,10 +51,23 @@ architecture arch of ID is
         );
     end component;
 
+    component SIGNEXTENDER is
+        port(
+            ---Inputs---
+            EXTEND_IN : in std_logic_vector (15 downto 0);
+
+            ---Outputs---
+            EXTEND_OUT : out std_logic_vector (31 downto 0)
+        );
+    end component;
+
     begin
 
         REG_DEST_MUX : MUX_5BIT
             port map(INSTRUCTION(20 downto 16),INSTRUCTION(15 downto 11),REG_DEST_SELECT, REG_DEST_MUX_OUT);
+
+        EXTENDER : SIGNEXTENDER
+            port map(INSTRUCTION(15 downto 0), SIGN_EXTENDED_OUT);
 
         REG : DATAREGISTER
             port map(INSTRUCTION(25 downto 21), INSTRUCTION(20 downto 16), REG_DEST_MUX_OUT, WB_DATA,
