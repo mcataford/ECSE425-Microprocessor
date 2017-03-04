@@ -5,6 +5,7 @@ use ieee.std_logic_1164.all;
 entity ALU is
 
 --TODO: determine ALU_CONTROL width.
+--ALU_CONTROL width: 3 bits
 
 port(
 	CLOCK: in std_logic;
@@ -37,7 +38,7 @@ begin
 --Word-width full adder component instance.
 WFA: WORDFULLADDER port map(WFA_A,WFA_B,WFA_Cout,WFA_S);
 
---TODO: Booth multiplier
+--Word-width multiplier component instance.
 
 process(CLOCK)
 
