@@ -4,13 +4,12 @@ use ieee.std_logic_1164.all;
 
 entity ALU is
 
---TODO: determine ALU_CONTROL width.
---ALU_CONTROL width: 3 bits
-
 port(
+	--Clock signal
 	CLOCK: in std_logic;
+	--Inputs
 	A,B: in std_logic_vector(31 downto 0);
-	ALU_CONTROL: in std_logic_vector(5 downto 0);
+	ALU_CONTROL: in std_logic_vector(2 downto 0);
 	OUTPUT: out std_logic_vector(31 downto 0);
 	ZERO, OVERFLOW: out std_logic
 );
@@ -50,7 +49,7 @@ end component;
 begin
 
 --Word-width full adder component instance.
-WFA: WORDFULLADDER port map(WFA_A,WFA_B,WFA_Cout,WFA_S);
+WFA: WORDFULLADDER port map(A,B,WFA_Cout,WFA_S);
 
 --Word-width multiplier component instance.
 
@@ -63,6 +62,37 @@ begin
 
 --Synchronized block
 if rising_edge(CLOCK) then
+
+case ALU_CONTROL is
+
+--Adder: ADD, ADDI, SUB
+when "000" =>
+	OUTPUT <= WFA_S;
+
+--Logic cell: AND, ANDI
+when "001" =>
+	LC_MODE <= "00";
+	OUTPUT <= LC_OUTPUT;
+
+--Logic cell: OR, ORI
+when "010" =>
+	LC_MODE <= "01";
+	OUTPUT <= LC_OUTPUT;
+
+--Logic cell: XOR, XORI
+when "011" =>
+	LC_MODE <= "10";
+	OUTPUT <= LC_OUTPUT;
+
+--Logic cell: NOR
+when "100" =>
+	LC_MODE <= "11";
+	OUTPUT <= LC_OUTPUT;
+	
+when others =>
+	OUTPUT <= (others => 'Z');
+
+end case;
 
 end if;
 
