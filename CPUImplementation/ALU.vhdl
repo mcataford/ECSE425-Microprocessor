@@ -24,6 +24,8 @@ signal WFA_Cout: std_logic := '0';
 signal LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
 signal LC_MODE: std_logic_vector(1 downto 0) := "00";
 
+--Intermediate signals, MC interactions
+signal MC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
 
 signal STATUS_FLAGS: std_logic_vector(1 downto 0) := (others => '0');
 
@@ -47,13 +49,22 @@ port(
 
 end component;
 
+component MULTIPLIERCELL
+
+port(
+	A,B: in std_logic_vector(31 downto 0);
+	OUTPUT: out std_logic_vector(31 downto 0)
+);
+
+end component;
+
 begin
 
 --Word-width full adder component instance.
 WFA: WORDFULLADDER port map(A,B,WFA_Cout,WFA_S);
 
 --Word-width multiplier component instance.
-
+MC: MULTIPLIERCELL port map(A,B,MC_OUTPUT);
 
 --Word-width divider component instance.
 
@@ -69,6 +80,7 @@ LC_MODE <= "00" when ALU_CONTROL = "001" else
 
 OUTPUT <= WFA_S when ALU_CONTROL = "000" else
 	LC_OUTPUT when ALU_CONTROL = "001" or ALU_CONTROL = "010" or ALU_CONTROL = "011" or ALU_CONTROL = "100" else
+	MC_OUTPUT when ALU_CONTROL = "101" else
 	(others => 'Z');  
 
 OVERFLOW <= STATUS_FLAGS(0);
