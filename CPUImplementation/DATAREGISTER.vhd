@@ -7,11 +7,18 @@ entity register is
     port(
 
         ---Inputs---
-
+        CLOCK : in std_logic;
         READ_REG1 : in std_logic_vector (4 downto 0);
         READ_REG2 : in std_logic_vector (4 downto 0);
         WRITE_REG : in std_logic_vector (4 downto 0);
         WRITE_DATA : in std_logic_vector (31 downto 0);
+        
+        ---Internal Signals---
+        PC_IN : in std_logic_vector (31 downto 0);
+
+        ---Control Signals---
+        CONTROL_LINK : in std_logic;
+        
 
         ---Outputs---
 
@@ -29,7 +36,7 @@ architecture arch of register is
 
     begin
 
-        --- Continuously sets $R0 = 0x0000;
+        --- Continuously sets $0 = 0x0000;
         REG(0) <= x"0000";
 
         --- Decode addresses to integers
@@ -37,14 +44,16 @@ architecture arch of register is
         rt <= to_integer(unsigned(READ_REG2))
         rd <= to_integer(unsigned(WRITE_REG));
 
-     
-        write_to_reg : process(WRITE_DATA)
+        reg_op : process(rising_edge(CLOCK))
             begin
-                REG(rd) <= WRITE_DATA;
-        end write_to_reg
-
-        READ_DATA_OUT1 <= REG(rs);
-        READ_DATA_OUT2 <= REG(rt);
+                if(CONTROL_LINK = '1') then
+                    REG(31) <= PC_IN;
+                else
+                    REG(rd) <= WRITE_DATA;
+                    READ_DATA_OUT1 <= REG(rs);
+                    READ_DATA_OUT2 <= REG(rt);
+                end if;
+        end reg_op;
 
 
 end arch;
