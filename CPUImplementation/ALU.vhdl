@@ -24,6 +24,9 @@ signal WFA_Cout: std_logic := '0';
 signal LC_A, LC_B, LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
 signal LC_MODE: std_logic_vector(1 downto 0) := "00";
 
+
+signal STATUS_FLAGS: std_logic_vector(1 downto 0) := (others => '0');
+
 component WORDFULLADDER
 
 port(
@@ -63,5 +66,8 @@ LC_MODE <= "00" when ALU_CONTROL = "001" else
 OUTPUT <= WFA_S when ALU_CONTROL = "000" else
 	LC_OUTPUT when ALU_CONTROL = "001" or ALU_CONTROL = "010" or ALU_CONTROL = "011" or ALU_CONTROL = "100" else
 	(others => 'Z');  
+
+OVERFLOW <= STATUS_FLAGS(0);
+ZERO <= STATUS_FLAGS(1);
 
 end architecture;
