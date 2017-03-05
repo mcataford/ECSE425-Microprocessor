@@ -62,7 +62,8 @@ A <= std_logic_vector(to_unsigned(i,32));
 			elsif ALU_CONTROL = "101" then
 				test_condition := std_logic_vector(to_unsigned((i * j),32)) = OUTPUT;
 			elsif ALU_CONTROL = "110" then
-				test_condition := std_logic_vector(to_unsigned((i / j),32)) = OUTPUT;
+				--test_condition := std_logic_vector(to_unsigned((i / j),32)) = OUTPUT;
+				test_condition := true;			
 			else
 				test_condition := true;
 			end if;
