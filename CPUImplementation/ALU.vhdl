@@ -54,6 +54,10 @@ WFA: WORDFULLADDER port map(A,B,WFA_Cout,WFA_S);
 
 --Word-width multiplier component instance.
 
+
+--Word-width divider component instance.
+
+
 --Logic cell component instance
 LC: LOGICCELL port map(A, B, LC_MODE, LC_OUTPUT);
 
