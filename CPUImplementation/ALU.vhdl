@@ -17,11 +17,11 @@ end entity;
 architecture ALU_impl of ALU is
 
 --Intermediate signals, WFA interactions.
-signal WFA_A, WFA_B, WFA_S: std_logic_vector(31 downto 0) := (others => '0');
+signal WFA_S: std_logic_vector(31 downto 0) := (others => '0');
 signal WFA_Cout: std_logic := '0';
 
 --Intermediate signals, LC interactions
-signal LC_A, LC_B, LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
+signal LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
 signal LC_MODE: std_logic_vector(1 downto 0) := "00";
 
 
@@ -55,7 +55,7 @@ WFA: WORDFULLADDER port map(A,B,WFA_Cout,WFA_S);
 --Word-width multiplier component instance.
 
 --Logic cell component instance
-LC: LOGICCELL port map(LC_A, LC_B, LC_MODE, LC_OUTPUT);
+LC: LOGICCELL port map(A, B, LC_MODE, LC_OUTPUT);
 
 LC_MODE <= "00" when ALU_CONTROL = "001" else
 	"01" when ALU_CONTROL = "010" else

@@ -11,7 +11,7 @@ architecture ALU_tst of ALU_tb is
 signal A,B,OUTPUT: std_logic_vector(31 downto 0);
 signal ZERO,OVERFLOW: std_logic;
 signal ALU_CONTROL: std_logic_vector(2 downto 0);
-
+ 
 constant clock_period: time := 1 ns;
 
 component ALU
@@ -37,7 +37,20 @@ begin
 
 A <= std_logic_vector(to_unsigned(50,32));
 B <= std_logic_vector(to_unsigned(60,32));
+
 ALU_CONTROL <= "000";
+
+wait for 1 ns;
+
+ALU_CONTROL <= "001";
+
+wait for 1 ns;
+
+ALU_CONTROL <= "010";
+
+wait for 1 ns;
+
+ALU_CONTROL <= "011";
 
 wait;
 
