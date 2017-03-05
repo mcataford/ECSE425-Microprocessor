@@ -5,8 +5,6 @@ use ieee.std_logic_1164.all;
 entity ALU is
 
 port(
-	--Clock signal
-	CLOCK: in std_logic;
 	--Inputs
 	A,B: in std_logic_vector(31 downto 0);
 	ALU_CONTROL: in std_logic_vector(2 downto 0);
@@ -56,46 +54,14 @@ WFA: WORDFULLADDER port map(A,B,WFA_Cout,WFA_S);
 --Logic cell component instance
 LC: LOGICCELL port map(LC_A, LC_B, LC_MODE, LC_OUTPUT);
 
-process(CLOCK)
+LC_MODE <= "00" when ALU_CONTROL = "001" else
+	"01" when ALU_CONTROL = "010" else
+	"10" when ALU_CONTROL = "011" else
+	"11" when ALU_CONTROL = "100" else
+	"00";
 
-begin 
-
---Synchronized block
-if rising_edge(CLOCK) then
-
-case ALU_CONTROL is
-
---Adder: ADD, ADDI, SUB
-when "000" =>
-	OUTPUT <= WFA_S;
-
---Logic cell: AND, ANDI
-when "001" =>
-	LC_MODE <= "00";
-	OUTPUT <= LC_OUTPUT;
-
---Logic cell: OR, ORI
-when "010" =>
-	LC_MODE <= "01";
-	OUTPUT <= LC_OUTPUT;
-
---Logic cell: XOR, XORI
-when "011" =>
-	LC_MODE <= "10";
-	OUTPUT <= LC_OUTPUT;
-
---Logic cell: NOR
-when "100" =>
-	LC_MODE <= "11";
-	OUTPUT <= LC_OUTPUT;
-	
-when others =>
-	OUTPUT <= (others => 'Z');
-
-end case;
-
-end if;
-
-end process;
+OUTPUT <= WFA_S when ALU_CONTROL = "000" else
+	LC_OUTPUT when ALU_CONTROL = "001" or ALU_CONTROL = "010" or ALU_CONTROL = "011" or ALU_CONTROL = "100" else
+	(others => 'Z');  
 
 end architecture;
