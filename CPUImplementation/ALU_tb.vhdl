@@ -33,24 +33,48 @@ ALU_tst : ALU port map(A,B,ALU_CONTROL,OUTPUT,ZERO,OVERFLOW);
 
 process
 
+variable test_condition: boolean;
+
 begin
 
-A <= std_logic_vector(to_unsigned(50,32));
-B <= std_logic_vector(to_unsigned(60,32));
+for i in 0 to 50 loop
 
-ALU_CONTROL <= "000";
+A <= std_logic_vector(to_unsigned(i,32));
+	
+	for j in 0 to 50 loop
+		B <= std_logic_vector(to_unsigned(j,32));
 
-wait for 1 ns;
+		for k in 0 to 7 loop
+			ALU_CONTROL <= std_logic_vector(to_unsigned(k,3));
 
-ALU_CONTROL <= "001";
+			wait for 1 ns;
+			
+			if ALU_CONTROL = "000" then
+				test_condition := (i + j) = to_integer(unsigned(OUTPUT));
+			elsif ALU_CONTROL = "001" then
+				test_condition := (A and B) = OUTPUT;
+			elsif ALU_CONTROL = "010" then
+				test_condition := (A or B) = OUTPUT;
+			elsif ALU_CONTROL = "011" then
+				test_condition := (A xor B) = OUTPUT;
+			elsif ALU_CONTROL = "100" then
+				test_condition := (A nor B) = OUTPUT;
+			elsif ALU_CONTROL = "101" then
+				test_condition := std_logic_vector(to_unsigned((i * j),32)) = OUTPUT;
+			elsif ALU_CONTROL = "110" then
+				test_condition := std_logic_vector(to_unsigned((i / j),32)) = OUTPUT;
+			else
+				test_condition := true;
+			end if;
 
-wait for 1 ns;
+			assert test_condition report "Failed to assert.";
+		
+			
+		end loop;
 
-ALU_CONTROL <= "010";
+	end loop;
 
-wait for 1 ns;
-
-ALU_CONTROL <= "011";
+end loop;
 
 wait;
 
