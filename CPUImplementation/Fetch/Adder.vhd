@@ -1,3 +1,6 @@
+-- Adder block used before the fetch register, which adds 4 to the PC register's bit address.
+-- This adder block is based on the full adder block, but is set to 32 bits instead of a single bit.
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -16,6 +19,7 @@ architecture arch of ADDER is
 
 	signal Caux :	std_logic_vector (31 downto 0);
 
+-- Calls the full adder block component to implement it
 	component FULLADDER is
 	    port(
 			A: in std_logic;
@@ -27,7 +31,7 @@ architecture arch of ADDER is
 	end component FULLADDER;
 
 begin
-	FULLADDER_START:
+	FULLADDER_START: -- Adding the very first bit
 		FULLADDER port map (
 			A => A(0),
 			B => B(0),
@@ -36,7 +40,7 @@ begin
 			Cout => Caux(0)
 		);
 		
-	NORMAL_ADDER:
+	NORMAL_ADDER: -- Adding the remaining 31 bits
 		for i in 1 to 31 generate
 			FULLADDER_NEXT:
 				FULLADDER port map (

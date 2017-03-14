@@ -1,3 +1,6 @@
+--Complete fetch instruction. It requires a PC register, an adder, a multiplexer, an instruction memory, and the IF/ID register
+--(The multiplexer is implemented as a process instead of a block)
+
 library IEEE;
 use IEEE.std_logic_1164.all;		
 use IEEE.numeric_std.all;
@@ -7,11 +10,9 @@ entity Instr_Fetch is
 		--Inputs--
 		CLK: in std_logic;
 		RESET: in std_logic;
-		
 		---Control Signals---
 		PC_SELECT: in std_logic; --MUX select
 		PC_ADDR_IN: in std_logic_vector(31 downto 0); --One of the MUX inputs
-		
 		--Outputs--
 		PC_ADDR_OUT: out std_logic_vector(31 downto 0);
 		INSTR: out std_logic_vector(31 downto 0)
@@ -59,17 +60,30 @@ architecture arch of Instr_Fetch is
 		);
 	end component IF_ID_Register;
 
-	component INSTRUCTION_MEMORY is
+	component memory is
+	  	GENERIC(
+		  ram_size : INTEGER := 32768;
+		  mem_delay : time := 10 ns;
+		  clock_period : time := 1 ns
+	   );
 		port(
 			RESET: in std_logic;
   			READ_ADDR: in std_logic_vector(31 downto 0);
   			INSTR: out std_logic_vector(31 downto 0)
+  			
+  			--clock: IN STD_LOGIC;
+		  --writedata: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+		  --address: IN INTEGER RANGE 0 TO ram_size-1;
+		  --memwrite: IN STD_LOGIC;
+		  --memread: IN STD_LOGIC;
+		  --readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+		  --waitrequest: OUT STD_LOGIC
 		);
-	end component INSTRUCTION_MEMORY;
+	end component memory;
 	
 --Port maps--
 begin
-	FETCH_ADDER:
+	FETCH_ADDER: -- The adder block
 		ADDER port map(
 			A => PC_ADDR_AUX1,
 			B => PC_COUNT, --Add 4
@@ -78,7 +92,7 @@ begin
 			Cout	=> PC_ADDR_AUX2(32)
 		);
 
-	MUX:
+	MUX: -- The multiplexer
 		process(PC_SELECT,PC_ADDR_IN,PC_ADDR_AUX2)
 		begin
 			if(PC_SELECT = '0') then
@@ -88,7 +102,7 @@ begin
 			end if;
 		end process MUX; 
 
-	PC: 
+	PC: -- The PC register
 		PC_Register port map(
 			CLK => CLK,
 			RESET => RESET,
@@ -96,14 +110,22 @@ begin
 			DATA_OUT => PC_ADDR_AUX1
 		);
 	
-	INSTR_MEM:
-		INSTRUCTION_MEMORY port map(
+	INSTR_MEM: -- The instruction memory
+	  memory port map(
 			RESET => RESET,
 			READ_ADDR => PC_ADDR_AUX1,
 			INSTR => INSTR_AUX
+			
+			--clock => clock,
+		  --writedata => PC_ADDR_AUX1,
+		  --address => address,
+		  --memwrite => memwrite,
+		  --memread => memread,
+		  --readdata => INSTR_AUX,
+		  --waitrequest => waitrequest
 		);
 		
-	IF_ID_REG:
+	IF_ID_REG: -- And the IF/ID register
 		IF_ID_Register port map(
 			CLK => CLK,
 			RESET => RESET,
