@@ -1,8 +1,9 @@
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity register is
+entity DATAREGISTER is
 
     port(
 
@@ -26,9 +27,9 @@ entity register is
         READ_DATA_OUT2 : out std_logic_vector (31 downto 0)
 
     );
-end register;
+end DATAREGISTER;
 
-architecture arch of register is
+architecture arch of DATAREGISTER is
 
     type MEM is array (31 downto 0) of std_logic_vector(31 downto 0);
     signal REG : MEM;
@@ -46,7 +47,6 @@ architecture arch of register is
 
         reg_op : process(rising_edge(CLOCK))
             begin
-                ---JAL - SAVE RETURN PC in $ra 
                 if(CONTROL_LINK = '1') then
                     REG(31) <= PC_IN;
                 else
@@ -55,6 +55,5 @@ architecture arch of register is
                     READ_DATA_OUT2 <= REG(rt);
                 end if;
         end reg_op;
-
 
 end arch;
