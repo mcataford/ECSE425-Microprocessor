@@ -13,10 +13,14 @@ entity ID is
         WB_DATA : in std_logic_vector (31 downto 0);
 
         ---Control Signals---
-        CONTROL_REG_DEST_SELECT : in std_logic;
-        CONTROL_LINK : in std_logic;
+        CONTROL_BRANCH : out std_logic;
+        CONTROL_MEM_TO_REG : out std_logic;
+        CONTROL_MEM_READ : out std_logic;
+        CONTROL_ALU_OP : out std_logic_vector(3 downto 0);
+        CONTROL_MEM_WRITE : out std_logic;
+        CONTROL_ALU_SRC : out std_logic;
 
-        ---Outputs---
+        ---Data Outputs---
         PC_OUT : out std_logic_vector (31 downto 0);
         SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
         REG_OUT1 : out std_logic_vector (31 downto 0);
@@ -29,6 +33,17 @@ end ID;
 architecture arch of ID is
 
     signal REG_DEST_MUX_OUT std_logic_vector (4 downto 0);
+    signal CONTROL_REG_DEST : std_logic;
+    signal CONTROL_BRANCH : std_logic;
+    signal CONTROL_MEM_READ : std_logic;
+    signal CONTROL_MEM_TO_REG : std_logic;
+    signal CONTROL_ALU_OP : std_logic_vector(3 downto 0);
+    signal CONTROL_MEM_WRITE : std_logic;
+    signal CONTROL_ALU_SRC : std_logic;
+    signal CONTROL_REG_WRITE : std_logic;
+    signal CONTROL_GET_HI : std_logic;
+    signal CONTROL_GET_LO : std_logic;
+    signal CONTROL_LINK : std_logic;
 
     component DATAREGISTER is
         port(  
@@ -44,7 +59,10 @@ architecture arch of ID is
 
             ---Control Signals---
             CONTROL_LINK : in std_logic;
-
+            CONTROL_REG_WRITE : in std_logic;
+            CONTROL_GET_HI : in std_logic;
+            CONTROL_GET_LO : in std_logic;
+            
             ---Outputs---
 
             READ_DATA_OUT1 : out std_logic_vector (31 downto 0);
@@ -70,17 +88,40 @@ architecture arch of ID is
         );
     end component;
 
+    component CONTROL is
+        port(
+            ---Inputs---
+            CLOCK : in std_logic;
+            INSTRUCTION : in std_logic_vector(31 downto 26);
+            ---Outputs---
+            REG_DEST : out std_logic;
+            BRANCH : out std_logic;
+            MEM_READ : out std_logic;
+            MEM_TO_REG : out std_logic;
+            ALU_OP : out std_logic_vector(3 downto 0);
+            MEM_WRITE : out std_logic;
+            ALU_SRC : out std_logic;
+            REG_WRITE : out std_logic;
+            GET_HI : out std_logic;
+            GET_LO : out std_logic;
+            CONTROL_JAL : out std_logic
+        );
+    end component;
+
     begin
 
         REG_DEST_MUX : MUX_5BIT
-            port map(INSTRUCTION(20 downto 16),INSTRUCTION(15 downto 11), CONTROL_REG_DEST_SELECT, REG_DEST_MUX_OUT);
+            port map(INSTRUCTION(20 downto 16),INSTRUCTION(15 downto 11), CONTROL_REG_DEST, REG_DEST_MUX_OUT);
 
         EXTENDER : SIGNEXTENDER
             port map(INSTRUCTION(15 downto 0), SIGN_EXTENDED_OUT);
 
         REG : DATAREGISTER
             port map(CLOCK, INSTRUCTION(25 downto 21), INSTRUCTION(20 downto 16), REG_DEST_MUX_OUT, WB_DATA,
-                        PC_IN, CONTROL_LINK, REG_OUT1, REG_OUT2);
+                        PC_IN, CONTROL_LINK, CONTROL_REG_WRITE, CONTROL_GET_HI, CONTROL_GET_LO, REG_OUT1, REG_OUT2);
         
+        CONTROL_UNIT : CONTROL
+            port map(CLOCK, INSTRUCTION(31 downto 26), CONTROL_REG_DEST, CONTROL_BRANCH, CONTROL_MEM_READ, CONTROL_MEM_TO_REG,
+                    CONTROL_ALU_OP, CONTROL_MEM_WRITE, CONTROL_ALU_SRC, CONTROL_REG_WRITE, CONTROL_GET_HI, CONTROL_GET_LO, CONTROL_LINK)
 
 end arch;

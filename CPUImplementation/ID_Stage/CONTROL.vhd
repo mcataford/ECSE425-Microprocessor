@@ -19,7 +19,7 @@ entity CONTROL is
         REG_WRITE : out std_logic;
         GET_HI : out std_logic;
         GET_LO : out std_logic;
-        CONTROL_LINK : out std_logic
+        CONTROL_JAL : out std_logic
     )
 end CONTROL;
 
@@ -158,7 +158,7 @@ architecture arch of CONTROL is
                 REG_WRITE <= output(6);
                 ALU_OP <= opOut;
 
-                CONTROL_LINK <= controlLink;
+                CONTROL_JAL <= controlLink;
                 GET_HI <= getHi;
                 GET_LO <= getLo;
         end process control_logic;
