@@ -44,18 +44,28 @@ architecture arch of DATAREGISTER is
 
         --- Decode addresses to integers
         rs <= to_integer(unsigned(READ_REG1));
-        rt <= to_integer(unsigned(READ_REG2))
+        rt <= to_integer(unsigned(READ_REG2));
         rd <= to_integer(unsigned(WRITE_REG));
 
-        reg_op : process(rising_edge(CLOCK))
+        reg_op : process(CLOCK)
             begin
-                if(CONTROL_LINK = '1') then
-                    REG(31) <= PC_IN;
-                if(CONTROL_REG_WRITE = '1') then
-                    REG(rd) <= WRITE_DATA;
-                end if;
-                READ_DATA_OUT1 <= REG(rs);
-                READ_DATA_OUT2 <= REG(rt);
-        end reg_op;
+		if(rising_edge(CLOCK)) then
+                	if(CONTROL_LINK = '1') then
+                	    	REG(31) <= PC_IN;
+			else
+				
+			end if;
+
+                	if(CONTROL_REG_WRITE = '1') then
+                    		REG(rd) <= WRITE_DATA;
+			else
+
+                	end if;
+                	READ_DATA_OUT1 <= REG(rs);
+                	READ_DATA_OUT2 <= REG(rt);
+		else
+
+		end if;
+        end process reg_op;
 
 end arch;

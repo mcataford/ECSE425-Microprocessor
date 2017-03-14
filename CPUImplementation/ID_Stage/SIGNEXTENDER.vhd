@@ -29,7 +29,7 @@ architecture arch of extender is
             elsif(EXTEND_IN(15) = '0') then
                 EXTEND_OUT(31 downto 16) <= x"00";
                 EXTEND_OUT(15 downto 0) <= EXTEND_IN;
-            end if
+            end if;
     end process;
 
 end arch;

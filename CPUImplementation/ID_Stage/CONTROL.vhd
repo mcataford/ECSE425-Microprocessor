@@ -20,7 +20,7 @@ entity CONTROL is
         GET_HI : out std_logic;
         GET_LO : out std_logic;
         CONTROL_JAL : out std_logic
-    )
+    );
 end CONTROL;
 
 architecture arch of CONTROL is
@@ -34,11 +34,11 @@ architecture arch of CONTROL is
             begin
                 --ADD--
                 if INSTRUCTION <= "100000" then
-                    output <= "1000001"
+                    output <= "1000001";
                     opOut <= "0000";
                 --SUB--
                 elsif INSTRUCTION <= "100010" then
-                    output <= "1000001"
+                    output <= "1000001";
                     opOut <= "0000";
                 --ADDI--
                 elsif INSTRUCTION <= "001000" then
@@ -50,11 +50,11 @@ architecture arch of CONTROL is
                     opOut <= "0101";
                 --DIV--
                 elsif INSTRUCTION <= "011010" then
-                    ouput <= "1000001";
+                    output <= "1000001";
                     opOut <= "0110";
                 --SLT--
                 elsif INSTRUCTION <= "101010" then
-                    ouput <= "1000001";
+                    output <= "1000001";
                     opOut <= "0000";
                 --SLTI--
                 elsif INSTRUCTION <= "001010" then
@@ -62,7 +62,7 @@ architecture arch of CONTROL is
                     opOut <= "0000";
                 --AND--
                 elsif INSTRUCTION <= "100100" then
-                    ouput <= "1000001";
+                    output <= "1000001";
                     opOut <= "0001";
                 --OR--
                 elsif INSTRUCTION <= "100101" then
@@ -121,7 +121,7 @@ architecture arch of CONTROL is
                 --SW--
                 elsif INSTRUCTION <= "101011" then
                     output <= "0000110";
-                    opOut <= "0000"
+                    opOut <= "0000";
                 --BEQ--
                 --FIX ALU_OP for branches
                 elsif INSTRUCTION <= "000100" then
