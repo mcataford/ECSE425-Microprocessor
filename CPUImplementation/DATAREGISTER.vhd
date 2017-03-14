@@ -46,6 +46,7 @@ architecture arch of register is
 
         reg_op : process(rising_edge(CLOCK))
             begin
+                ---JAL - SAVE RETURN PC in $ra 
                 if(CONTROL_LINK = '1') then
                     REG(31) <= PC_IN;
                 else
