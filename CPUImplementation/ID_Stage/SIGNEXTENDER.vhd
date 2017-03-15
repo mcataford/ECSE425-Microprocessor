@@ -24,10 +24,10 @@ architecture arch of extender is
     extend : process (EXTEND_IN)
         begin  
             if(EXTEND_IN(15)='1') then
-                EXTEND_OUT(31 downto 16) <= x"FF";
+                EXTEND_OUT(31 downto 16) <= x"FFFF";
                 EXTEND_OUT(15 downto 0) <= EXTEND_IN;
             elsif(EXTEND_IN(15) = '0') then
-                EXTEND_OUT(31 downto 16) <= x"00";
+                EXTEND_OUT(31 downto 16) <= x"0000";
                 EXTEND_OUT(15 downto 0) <= EXTEND_IN;
             end if;
     end process;
