@@ -144,7 +144,7 @@ architecture arch of CONTROL is
                     opOut <= "0000";
                 --BNE--
                 when "000101" =>
-                    output <= "01000110";
+                    output <= "0100011";
                     opOut <= "0000";
                 --J--
                 when "000010" =>
