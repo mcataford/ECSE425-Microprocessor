@@ -33,8 +33,10 @@ end DATAREGISTER;
 
 architecture arch of DATAREGISTER is
 
-    type MEM is array (31 downto 0) of std_logic_vector(31 downto 0);
-    signal REG : MEM;
+    --type MEM is array (31 downto 0) of std_logic_vector(31 downto 0);
+    --signal REG : MEM;
+    type MEM is array (3 downto 0) of std_logic_vector(31 downto 0);
+    signal REG : MEM := ("00000000000000000000000000000000","00000000000000000000000000000001","01010101010101010101010101010101","00000000000000000000000000000000");
     signal rs, rt, rd : integer;
 
     begin
@@ -49,23 +51,15 @@ architecture arch of DATAREGISTER is
 
         reg_op : process(CLOCK)
             begin
-		if(rising_edge(CLOCK)) then
-                	if(CONTROL_LINK = '1') then
-                	    	REG(31) <= PC_IN;
-			else
-				
-			end if;
-
-                	if(CONTROL_REG_WRITE = '1') then
-                    		REG(rd) <= WRITE_DATA;
-			else
-
-                	end if;
-                	READ_DATA_OUT1 <= REG(rs);
-                	READ_DATA_OUT2 <= REG(rt);
-		else
-
-		end if;
+            if(falling_edge(CLOCK) AND CONTROL_REG_WRITE = '1') then
+                REG(rd) <= WRITE_DATA;
+            end if;
+            if(rising_edge(CLOCK)) then
+                if(CONTROL_LINK = '1') then
+                    REG(3) <= PC_IN;
+                end if;
+                READ_DATA_OUT1 <= REG(rs);
+                READ_DATA_OUT2 <= REG(rt);
+            end if;
         end process reg_op;
-
 end arch;
