@@ -1,6 +1,7 @@
 library IEEE;
 
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity EX_STAGE is
 
@@ -45,12 +46,18 @@ end component;
 
 begin
 
+--ALU Unit
 ALU_unit : ALU port map(MUX1_OUT,MUX2_OUT,ALU_CONTROL,R,STATUS(0),STATUS(1));
+
+--Multiplexers gating the ALU input
 MUX1 : MUX port map(A,PC,SELECTOR1,MUX1_OUT);
 MUX2 : MUX port map(B,I,SELECTOR2,MUX2_OUT);
 
+--Forwarding
 FB <= B;
 FIns <= Ins;
 
+BRANCH <= '1' when to_integer(unsigned(A)) = 0 else
+	'0';
 
 end architecture;
