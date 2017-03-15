@@ -19,7 +19,9 @@ entity DATAREGISTER is
 
         ---Control Signals---
         CONTROL_LINK : in std_logic;
-        
+        CONTROL_REG_WRITE : in std_logic;
+        CONTROL_GET_HI : in std_logic;
+        CONTROL_GET_LO : in std_logic;
 
         ---Outputs---
 
@@ -38,22 +40,32 @@ architecture arch of DATAREGISTER is
     begin
 
         --- Continuously sets $0 = 0x0000;
-        REG(0) <= x"0000";
+        REG(0) <= x"00000000";
 
         --- Decode addresses to integers
         rs <= to_integer(unsigned(READ_REG1));
-        rt <= to_integer(unsigned(READ_REG2))
+        rt <= to_integer(unsigned(READ_REG2));
         rd <= to_integer(unsigned(WRITE_REG));
 
-        reg_op : process(rising_edge(CLOCK))
+        reg_op : process(CLOCK)
             begin
-                if(CONTROL_LINK = '1') then
-                    REG(31) <= PC_IN;
-                else
-                    REG(rd) <= WRITE_DATA;
-                    READ_DATA_OUT1 <= REG(rs);
-                    READ_DATA_OUT2 <= REG(rt);
-                end if;
-        end reg_op;
+		if(rising_edge(CLOCK)) then
+                	if(CONTROL_LINK = '1') then
+                	    	REG(31) <= PC_IN;
+			else
+				
+			end if;
+
+                	if(CONTROL_REG_WRITE = '1') then
+                    		REG(rd) <= WRITE_DATA;
+			else
+
+                	end if;
+                	READ_DATA_OUT1 <= REG(rs);
+                	READ_DATA_OUT2 <= REG(rt);
+		else
+
+		end if;
+        end process reg_op;
 
 end arch;
