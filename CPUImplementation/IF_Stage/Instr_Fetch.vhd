@@ -21,13 +21,10 @@ end IF_STAGE;
 
 architecture IF_STAGE_Impl of IF_STAGE is	
 
-signal PC_CURRENT: std_logic_vector(31 downto 0) := (others => '0'); --Old PC instruction
-signal PC_INCR: std_logic_vector(31 downto 0); --New PC instruction (and carry out)
-signal PC_FEEDBACK: std_logic_vector(31 downto 0) := (others => '0');
-signal PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0');
+signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0'); --Old PC instruction
 
 signal INSTR_ADDR: integer := 0;
-signal INSTR_BYTE: std_logic_vector(7 downto 0);
+
 signal WAIT_REQ: std_logic;
 
 signal INSTR_AUX: std_logic_vector(31 downto 0); --Current instruction
