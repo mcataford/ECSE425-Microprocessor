@@ -15,6 +15,7 @@ component ID is
         INSTRUCTION : in std_logic_vector (31 downto 0);
         PC_IN : in std_logic_vector (31 downto 0);
         WB_DATA : in std_logic_vector (31 downto 0);
+        WB_HILO : in std_logic_vector (63 downto 0);
 
         ---Control Signals---
         CONTROL_BRANCH : out std_logic;
@@ -44,7 +45,7 @@ signal i : integer :=39;
 signal inst : std_logic_vector(31 downto 0);
 signal pcin : std_logic_vector(31 downto 0);
 signal wbdata : std_logic_vector(31 downto 0);
-
+signal wbhilo : std_logic_vector(63 downto 0);
 signal CTRL_BRANCH : std_logic;
 signal CTRL_MEM_TO_REG : std_logic;
 signal CTRL_MEM_READ : std_logic;
@@ -66,6 +67,7 @@ port map(
 	INSTRUCTION => inst,
 	PC_IN => pcin,
 	WB_DATA => wbdata,
+    WB_HILO => wbhilo,
     --Outputs--
 	CONTROL_BRANCH => CTRL_BRANCH,
 	CONTROL_MEM_TO_REG => CTRL_MEM_TO_REG,
@@ -121,7 +123,19 @@ wait for clk_period;
 
 inst <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
-wbdata <="00000000000000000000000000000000";
+wbhilo <="0000000000000000000000000000000000000000000001011011101111011111";
+i <= i-1;
+
+wait for clk_period;
+
+inst <= "00000000000000000100100000010010";
+pcin <= pcin or "00000000000000000000000000000001";
+i <= i-1;
+
+wait for clk_period;
+
+inst <= "00000001010010110100100000100000";
+pcin <= pcin or "00000000000000000000000000000100";
 i <= i-1;
 
 wait;
