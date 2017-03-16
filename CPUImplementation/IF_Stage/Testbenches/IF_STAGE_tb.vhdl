@@ -48,13 +48,9 @@ process
 
 begin
 
-RESET <= '1';
+RESET <= '0';
 PC_SRC <= '0';
 ALU_PC <= (others => '0');
-
-wait for 1 * CLK_PERIOD;
-
-RESET <= '0';
 
 wait;
 
