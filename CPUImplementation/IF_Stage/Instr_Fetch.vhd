@@ -23,7 +23,8 @@ architecture IF_STAGE_Impl of IF_STAGE is
 
 signal PC_CURRENT: std_logic_vector(31 downto 0) := (others => '0'); --Old PC instruction
 signal PC_INCR: std_logic_vector(31 downto 0); --New PC instruction (and carry out)
-signal PC_FEEDBACK: std_logic_vector(31 downto 0);
+signal PC_FEEDBACK: std_logic_vector(31 downto 0) := (others => '0');
+signal PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0');
 
 signal INSTR_ADDR: integer := 0;
 signal INSTR_BYTE: std_logic_vector(7 downto 0);
@@ -92,12 +93,12 @@ process(CLOCK)
 begin
 
 if rising_edge(CLOCK) then
-
-	PC_OUT <= PC_FEEDBACK;
-	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT));
-
+	PC_OUT_NEXT <= PC_FEEDBACK;
+	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4 + 1;
 end if;
 
 end process;
+
+PC_OUT <= PC_OUT_NEXT;
 
 end architecture;
