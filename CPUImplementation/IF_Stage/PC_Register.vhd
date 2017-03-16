@@ -2,25 +2,30 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;		
-use IEEE.numeric_std.all;
 
 entity PC_Register is    
-	port(
-		CLK: in std_logic;	
-		RESET: in std_logic;
-		DATA_IN: in std_logic_vector(31 downto 0);
-		DATA_OUT: out std_logic_vector(31 downto 0)
-	);
-end PC_Register;
+port(
+	CLOCK,RESET,REG_WRITE: in std_logic;	
+	DATA_IN: in std_logic_vector(31 downto 0);
+	DATA_OUT: out std_logic_vector(31 downto 0)
+);
+end entity;
 
-architecture arch of PC_Register is        
+architecture PC_Register_Impl of PC_Register is        
+
+signal MEM: std_logic_vector(31 downto 0) := (others => '0');
+
 begin
-	process(CLK,RESET,DATA_IN)
+	process(CLOCK,RESET)
 		begin
-			if(RESET = '1') then
-				DATA_OUT <= (others => '0'); --Resets the value to 0 (to initialize it)
-			elsif rising_edge(CLK) then
-				DATA_OUT <= DATA_IN; --Outputs the given 32 bit of data
+			if RESET = '1' then
+				MEM <= (others => '0'); --Resets the value to 0 (to initialize it)
+			elsif rising_edge(CLOCK) then
+				if REG_WRITE = '1' then
+					MEM <= DATA_IN; --Outputs the given 32 bit of data
+				end if;
 			end if;
-	end process; 
-end arch;
+	end process;
+
+	DATA_OUT <= MEM; 
+end architecture;
