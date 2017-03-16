@@ -33,7 +33,14 @@ end ID;
 architecture arch of ID is
 
     signal REG_DEST_MUX_OUT : std_logic_vector (4 downto 0);
-    signal CONTROL_REG_DEST : std_logic;
+
+    --DATAREGISTER sigals --
+    signal rr1, rr2, wr : std_logic_vector(4 downto 0);
+    signal wd, pcin : std_logic_vector(31 downto 0);
+    signal cl,crw,cgh,cgl : std_logic;
+    signal rdo1, rdo2 : std_logic_vector(31 downto 0);
+
+    --CONTROL--
     signal CTRL_BRANCH : std_logic;
     signal CTRL_MEM_READ : std_logic;
     signal CTRL_MEM_TO_REG : std_logic;
@@ -92,8 +99,8 @@ architecture arch of ID is
     component CONTROL is
         port(
             ---Inputs---
-            CLOCK : in std_logic;
-            INSTRUCTION : in std_logic_vector(31 downto 26);
+            INSTRUCTION_OP: in std_logic_vector(31 downto 26);
+            INSTRUCTION_FUNC : in std_logic_vector(5 downto 0);
             ---Outputs---
             REG_DEST : out std_logic;
             BRANCH : out std_logic;
@@ -112,24 +119,50 @@ architecture arch of ID is
     begin
 
         REG_DEST_MUX : MUX_5BIT
-            port map(INSTRUCTION(20 downto 16),INSTRUCTION(15 downto 11), CTRL_REG_DEST, REG_DEST_MUX_OUT);
+            port map(INSTRUCTION(20 downto 16), INSTRUCTION(15 downto 11), CTRL_REG_DEST, REG_DEST_MUX_OUT);
 
         EXTENDER : SIGNEXTENDER
             port map(INSTRUCTION(15 downto 0), SIGN_EXTENDED_OUT);
 
         REG : DATAREGISTER
-            port map(CLOCK, INSTRUCTION(25 downto 21), INSTRUCTION(20 downto 16), REG_DEST_MUX_OUT, WB_DATA,
-                        PC_IN, CTRL_LINK, CTRL_REG_WRITE, CTRL_GET_HI, CTRL_GET_LO, REG_OUT1, REG_OUT2);
+            port map(
+                CLOCK,
+                INSTRUCTION(25 downto 21),
+                INSTRUCTION(20 downto 16),
+                REG_DEST_MUX_OUT,
+                WB_DATA,
+                PC_IN,
+                CTRL_LINK,
+                CTRL_REG_WRITE, 
+                CTRL_GET_HI,
+                CTRL_GET_LO,
+                REG_OUT1,
+                REG_OUT2
+            );
         
         CONTROL_UNIT : CONTROL
-            port map(CLOCK, INSTRUCTION(31 downto 26), CTRL_REG_DEST, CTRL_BRANCH, CTRL_MEM_READ, CTRL_MEM_TO_REG,
-                    CTRL_ALU_OP, CTRL_MEM_WRITE, CTRL_ALU_SRC, CTRL_REG_WRITE, CTRL_GET_HI, CTRL_GET_LO, CTRL_LINK);
+            port map(
+                INSTRUCTION(31 downto 26),
+                INSTRUCTION(5 downto 0),
+                CTRL_REG_DEST,
+                CTRL_BRANCH,
+                CTRL_MEM_READ,
+                CTRL_MEM_TO_REG,
+                CTRL_ALU_OP,
+                CTRL_MEM_WRITE,
+                CTRL_ALU_SRC,
+                CTRL_REG_WRITE,
+                CTRL_GET_HI,
+                CTRL_GET_LO,
+                CTRL_LINK
+            );
 
-	CONTROL_BRANCH <= CTRL_BRANCH;
+	    CONTROL_BRANCH <= CTRL_BRANCH;
         CONTROL_MEM_TO_REG <= CTRL_MEM_TO_REG;
         CONTROL_MEM_READ <= CTRL_MEM_READ;
         CONTROL_ALU_OP <= CTRL_ALU_OP;
         CONTROL_MEM_WRITE <= CTRL_MEM_WRITE;
         CONTROL_ALU_SRC <= CTRL_ALU_SRC;
+        PC_OUT <= PC_IN;
 
 end arch;
