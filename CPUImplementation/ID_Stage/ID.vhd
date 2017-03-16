@@ -11,6 +11,7 @@ entity ID is
         INSTRUCTION : in std_logic_vector (31 downto 0);
         PC_IN : in std_logic_vector (31 downto 0);
         WB_DATA : in std_logic_vector (31 downto 0);
+        WB_HILO : in std_logic_vector(63 downto 0);
 
         ---Control Signals---
         CONTROL_BRANCH : out std_logic;
@@ -36,7 +37,7 @@ architecture arch of ID is
 
     --DATAREGISTER sigals --
     signal rr1, rr2, wr : std_logic_vector(4 downto 0);
-    signal wd, pcin : std_logic_vector(31 downto 0);
+    signal wl, wh, pcin : std_logic_vector(31 downto 0);
     signal cl,crw,cgh,cgl : std_logic;
     signal rdo1, rdo2 : std_logic_vector(31 downto 0);
 
@@ -61,6 +62,7 @@ architecture arch of ID is
             READ_REG2 : in std_logic_vector (4 downto 0);
             WRITE_REG : in std_logic_vector (4 downto 0);
             WRITE_DATA : in std_logic_vector (31 downto 0);
+            WRITE_HILO : in std_logic_vector (63 downto 0);
 
             ---Internal Signals---
             PC_IN : in std_logic_vector (31 downto 0);
@@ -131,6 +133,7 @@ architecture arch of ID is
                 INSTRUCTION(20 downto 16),
                 REG_DEST_MUX_OUT,
                 WB_DATA,
+                WB_HILO,
                 PC_IN,
                 CTRL_LINK,
                 CTRL_REG_WRITE, 
