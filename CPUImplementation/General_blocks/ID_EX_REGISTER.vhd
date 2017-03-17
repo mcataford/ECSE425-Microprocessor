@@ -7,7 +7,6 @@ entity ID_EX_REGISTER is
         --Inputs--
         --Change as required--
         CLOCK,
-        CONTROL_REG_DEST_IN,
         CONTROL_ALU_SRC_IN, 
         CONTROL_BRANCH_IN, 
         CONTROL_MEM_READ_IN,
@@ -23,12 +22,10 @@ entity ID_EX_REGISTER is
         REG_IN1,
         REG_IN2 : in std_logic_vector(31 downto 0);
         
-        RT_IN,
-        RD_IN : in std_logic_vector(4 downto 0);
+        WB_REG_IN : in std_logic_vector(4 downto 0);
 
         --Outputs--
         --Change as required--
-        CONTROL_REG_DEST_OUT,
         CONTROL_ALU_SRC_OUT,
         CONTROL_BRANCH_OUT,
         CONTROL_MEM_READ_OUT,
@@ -43,8 +40,7 @@ entity ID_EX_REGISTER is
         REG_OUT1,
         REG_OUT2 : out std_logic_vector(31 downto 0);
 
-        RT_OUT,
-        RD_OUT : out std_logic_vector(4 downto 0)
+        WB_REG_OUT : out std_logic_vector(4 downto 0)
 
     );
 
@@ -54,7 +50,7 @@ end ID_EX_REGISTER;
 architecture arch of ID_EX_REGISTER is
     
     signal control : std_logic_vector(6 downto 0);
-    signal registers : std_logic_vector(9 downto 0);
+    signal registers : std_logic_vector(4 downto 0);
     signal values : std_logic_vector(127 downto 0);
     signal op : std_logic_vector(3 downto 0);
 
@@ -68,12 +64,11 @@ architecture arch of ID_EX_REGISTER is
                 control(3) <= CONTROL_MEM_READ_IN;
                 control(4) <= CONTROL_MEM_WRITE_IN;
                 control(5) <= CONTROL_REG_WRITE_IN;
-                control(6) <= CONTROL_MEM_TO_READ_IN;
+                control(6) <= CONTROL_MEM_TO_REG_IN;
             
                 op <= CONTROL_ALU_OP_IN;
 
-                registers(4 downto 0) <= RT_IN;
-                registers(9 downto 5) <= RD_IN;
+                registers(4 downto 0) <= WB_REG_IN;
 
                 values(31 downto 0) <= PC_IN;
                 values(63 downto 32) <= SIGN_EXTENDED_IN;
@@ -87,12 +82,11 @@ architecture arch of ID_EX_REGISTER is
         CONTROL_MEM_READ_OUT <= control(3);
         CONTROL_MEM_WRITE_OUT <= control(4);
         CONTROL_REG_WRITE_OUT <= control(5);
-        CONTROL_MEM_TO_READ_OUT <= control(6);
+        CONTROL_MEM_TO_REG_OUT <= control(6);
 
         CONTROL_ALU_OP_OUT <= op;
 
-        RT_OUT <= values(4 downto 0);
-        RD_OUT <= values(9 downto 5);
+        WB_REG_OUT <= values(4 downto 0);
 
         PC_OUT <= values(31 downto 0);
         SIGN_EXTENDED_OUT <= values(63 downto 32);

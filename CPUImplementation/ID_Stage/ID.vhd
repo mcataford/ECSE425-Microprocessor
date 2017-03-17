@@ -15,7 +15,7 @@ entity ID is
         WB_HILO : in std_logic_vector(63 downto 0);
 
         --Control Signals In--
-        CONTROL_REG_WRITE_IN : out std_logic;
+        CONTROL_REG_WRITE_IN : in std_logic;
 
         ---Control Signals---
         CONTROL_BRANCH_OUT,
