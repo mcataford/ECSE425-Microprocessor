@@ -73,7 +73,8 @@ component memory is
 	GENERIC(
 	ram_size : INTEGER := 32768;
 	mem_delay : time := 1 ns;
-	clock_period : time := 1 ns
+	clock_period : time := 1 ns;
+	from_file : boolean := true
 );
 	PORT (
 	clock: IN STD_LOGIC;
