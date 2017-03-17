@@ -5,17 +5,25 @@ use ieee.std_logic_1164.all;
 entity ALU is
 
 port(
-	--Inputs
+	--INPUT--
+	--Operands--
 	A,B: in std_logic_vector(31 downto 0);
-	ALU_CONTROL: in std_logic_vector(2 downto 0);
-	OUTPUT: out std_logic_vector(31 downto 0);
-	OUTPUT_64: out std_logic_vector(63 downto 0);
-	ZERO, OVERFLOW: out std_logic
+	--Control signal--
+	ALU_CONTROL: in std_logic_vector(3 downto 0);
+	--OUTPUT--
+	--32b output--
+	OUTPUT: out std_logic_vector(31 downto 0) := (others => '0');
+	--64b output--
+	OUTPUT_64: out std_logic_vector(63 downto 0) := (others => '0');
+	--Status flags--
+	ZERO, OVERFLOW: out std_logic := '0'
 );
 
 end entity;
 
 architecture ALU_impl of ALU is
+
+--Intermediate signals--
 
 --Intermediate signals, WFA interactions.
 signal WFA_S: std_logic_vector(31 downto 0) := (others => '0');
@@ -34,12 +42,14 @@ signal DC_STATUS: std_logic := '0';
 
 signal STATUS_FLAGS: std_logic_vector(1 downto 0) := (others => '0');
 
+--Component definition--
+
 component WORDFULLADDER
 
 port(
 	A,B: in std_logic_vector(31 downto 0);
-	Cout: out std_logic;
-	S: out std_logic_vector(31 downto 0)
+	Cout: out std_logic := '0';
+	S: out std_logic_vector(31 downto 0) := (others => '0')
 );
 
 end component;
@@ -49,7 +59,7 @@ component LOGICCELL
 port(
 	A,B: in std_logic_vector(31 downto 0);
 	MODE: in std_logic_vector(1 downto 0);
-	OUTPUT: out std_logic_vector(31 downto 0)
+	OUTPUT: out std_logic_vector(31 downto 0) := (others => '0')
 );
 
 end component;
@@ -58,7 +68,7 @@ component MULTIPLIERCELL
 
 port(
 	A,B: in std_logic_vector(31 downto 0);
-	OUTPUT: out std_logic_vector(63 downto 0)
+	OUTPUT: out std_logic_vector(63 downto 0) := (others => '0')
 );
 
 end component;
@@ -67,8 +77,8 @@ component DIVIDERCELL
 
 port (
 	A,B: in std_logic_vector(31 downto 0);
-	STATUS: out std_logic;
-	QUOTIENT, REMAINDER: out std_logic_vector(31 downto 0)
+	STATUS: out std_logic := '0';
+	QUOTIENT, REMAINDER: out std_logic_vector(31 downto 0) := (others => '0')
 );
 
 end component;
@@ -87,19 +97,19 @@ DC: DIVIDERCELL port map(A,B,DC_STATUS,DC_QUOTIENT,DC_REMAINDER);
 --Logic cell component instance
 LC: LOGICCELL port map(A, B, LC_MODE, LC_OUTPUT);
 
-LC_MODE <= "00" when ALU_CONTROL = "001" else
-	"01" when ALU_CONTROL = "010" else
-	"10" when ALU_CONTROL = "011" else
-	"11" when ALU_CONTROL = "100" else
+LC_MODE <= "00" when ALU_CONTROL = "0001" else
+	"01" when ALU_CONTROL = "0010" else
+	"10" when ALU_CONTROL = "0011" else
+	"11" when ALU_CONTROL = "0100" else
 	"00";
 
-OUTPUT <= WFA_S when ALU_CONTROL = "000" else
-	LC_OUTPUT when ALU_CONTROL = "001" or ALU_CONTROL = "010" or ALU_CONTROL = "011" or ALU_CONTROL = "100" else
-	(others => '0') when ALU_CONTROL = "101" or ALU_CONTROL = "110" else
+OUTPUT <= WFA_S when ALU_CONTROL = "0000" else
+	LC_OUTPUT when ALU_CONTROL = "0001" or ALU_CONTROL = "0010" or ALU_CONTROL = "0011" or ALU_CONTROL = "0100" else
+	(others => '0') when ALU_CONTROL = "0101" or ALU_CONTROL = "0110" else
 	(others => 'Z');  
 
-OUTPUT_64 <= MC_OUTPUT when ALU_CONTROL = "101" else
-		DC_QUOTIENT & DC_REMAINDER when ALU_CONTROL = "110" else
+OUTPUT_64 <= MC_OUTPUT when ALU_CONTROL = "0101" else
+		DC_QUOTIENT & DC_REMAINDER when ALU_CONTROL = "0110" else
 		(others => 'Z');
 
 OVERFLOW <= STATUS_FLAGS(0);
