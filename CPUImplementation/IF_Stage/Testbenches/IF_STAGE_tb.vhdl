@@ -37,9 +37,9 @@ process
 
 begin
 
-CLOCK <= '1';
-wait for 0.5 * CLK_PERIOD;
 CLOCK <= '0';
+wait for 0.5 * CLK_PERIOD;
+CLOCK <= '1';
 wait for 0.5 * CLK_PERIOD;
 
 end process;

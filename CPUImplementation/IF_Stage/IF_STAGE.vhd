@@ -1,52 +1,50 @@
---Complete fetch instruction. It requires a PC register, an adder, a multiplexer, an instruction memory, and the IF/ID register
---(The multiplexer is implemented as a process instead of a block)
-
 library IEEE;
 use IEEE.std_logic_1164.all;		
 use IEEE.numeric_std.all;
 
 entity IF_STAGE is
 	port(
-		--Inputs--
+		--INPUT--
+		--Clock signal--
 		CLOCK: in std_logic;
+		--Reset signal--
 		RESET: in std_logic;
-		---Control Signals---
-		PC_SRC: in std_logic; --MUX select
-		ALU_PC: in std_logic_vector(31 downto 0); --One of the MUX inputs
-		--Outputs--
-		PC_OUT: out std_logic_vector(31 downto 0) := (others => '0');
-		INSTR: out std_logic_vector(31 downto 0)
+		--PC MUX select signal--
+		PC_SRC: in std_logic;
+		--Feedback from ALU for PC calc.--
+		ALU_PC: in std_logic_vector(31 downto 0);
+		--OUTPUT--
+		--PC output--
+		PC_OUT,
+		--Fetched instruction--
+		INSTR: out std_logic_vector(31 downto 0) := (others => '0')
 	);
 end IF_STAGE;
 
 architecture IF_STAGE_Impl of IF_STAGE is	
 
-signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0'); --Old PC instruction
+--Intermediate signals--
 
+signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0');
 signal INSTR_ADDR: integer := 0;
-
-signal WAIT_REQ: std_logic;
-
-signal INSTR_AUX: std_logic_vector(31 downto 0); --Current instruction
-
-signal WFA_Cout: std_logic := '0';
+signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
 --Components--
+
 component WORDFULLADDER 
-port(
-	A,B: in	std_logic_vector(31 downto 0);
-	S: out std_logic_vector(31 downto 0);
-	Cout: out std_logic
-);
+	port(
+		A,B: in	std_logic_vector(31 downto 0);
+		S: out std_logic_vector(31 downto 0);
+		Cout: out std_logic
+	);
 end component;
 
 component MUX
-
-port (
-	A,B: in std_logic_vector(31 downto 0);
-	SELECTOR: in std_logic;
-	OUTPUT: out std_logic_vector(31 downto 0)
-);
+	port (
+		A,B: in std_logic_vector(31 downto 0);
+		SELECTOR: in std_logic;
+		OUTPUT: out std_logic_vector(31 downto 0)
+	);
 	
 end component;
 
@@ -93,7 +91,7 @@ if rising_edge(CLOCK) then
 	PC_OUT <= PC_OUT_NEXT;
 
 	PC_OUT_NEXT <= PC_FEEDBACK;
-	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4 + 1;
+	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
 end if;
 
 end process;
