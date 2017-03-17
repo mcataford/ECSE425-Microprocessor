@@ -49,6 +49,9 @@ architecture arch of EX_MEM_REGISTER is
     begin
 
         pipeline_buffer : process(CLOCK)
+
+	begin
+
             if(falling_edge(CLOCK)) then
                 control(0) <= CONTROL_BRANCH_IN;
                 control(1) <= CONTROL_ZERO_IN;
