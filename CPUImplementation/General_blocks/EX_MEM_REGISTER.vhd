@@ -1,168 +1,67 @@
-<<<<<<< HEAD
-library IEEE;
+library ieee;
 
 use ieee.std_logic_1164.all;
 
 entity EX_MEM_REGISTER is
-    port(
-        --Inputs--
-        --Change as required--
-        CLOCK,
-        CONTROL_BRANCH_IN,
-        CONTROL_ZERO_IN,
-        CONTROL_MEM_READ_IN,
-        CONTROL_MEM_WRITE_IN, 
-        CONTROL_REG_WRITE_IN,
-        CONTROL_MEM_TO_REG_IN : in std_logic;
 
-        PC_IN,
-        ALU_RESULT_IN,
-        WRITE_DATA_IN : in std_logic_vector(31 downto 0);
-        
-        REG_WRITE_IN: in std_logic_vector(4 downto 0);
+	port(
+		--INPUT--
+		--Clock signal--
+		CLOCK: in std_logic;
+		--Branch selection--
+		BRANCH_IN: in std_logic;
+		--ALU 32b out--
+		R_IN,
+		--Operand B forward--
+		B_FORWARD_IN,
+		--Instruction forward--
+		INSTR_IN: in std_logic_vector(31 downto 0);
+		--ALU 64b out--
+		R_64_IN: in std_logic_vector(63 downto 0);
+		--OUTPUT--
+		--Branch selection--
+		BRANCH_OUT: out std_logic := '0';
+		--ALU 32b out--
+		R_OUT,
+		--Operand B forward--
+		B_FORWARD_OUT,
+		--Instruction forward--
+		INSTR_OUT: out std_logic_vector(31 downto 0) := (others => '0');
+		--Alu 64b out--
+		R_64_OUT: out std_logic_vector(63 downto 0) := (others => '0')
+		
+	);
 
-        --Outputs--
-        --Change as required--
-        CONTROL_BRANCH_OUT,
-        CONTROL_ZERO_OUT,
-        CONTROL_MEM_READ_OUT,
-        CONTROL_MEM_WRITE_OUT,
-        CONTROL_REG_WRITE_OUT,
-        CONTROL_MEM_TO_REG_OUT : out std_logic;
+end entity;
 
-        PC_OUT,
-        ALU_RESULT_OUT,
-        WRITE_DATA_OUT : out std_logic_vector(31 downto 0);
+architecture EX_MEM_REGISTER_Impl of EX_MEM_REGISTER is
 
-        REG_WRITE_OUT : out std_logic_vector(4 downto 0)
+signal BRANCH_MEM: std_logic := '0';
+signal R_MEM,B_FORWARD_MEM,INSTR_MEM: std_logic_vector(31 downto 0) := (others => '0');
+signal R_64_MEM: std_logic_vector(63 downto 0) := (others => '0');
 
-    );
+begin
 
-end EX_MEM_REGISTER;
-
-
-architecture arch of EX_MEM_REGISTER is
-    
-    signal control : std_logic_vector(5 downto 0);
-    signal registers : std_logic_vector(4 downto 0);
-    signal values : std_logic_vector(95 downto 0);
-
-    begin
-
-        pipeline_buffer : process(CLOCK)
-
+	process(CLOCK)
+	
 	begin
+	
+		if rising_edge(CLOCK) then
+		
+			BRANCH_OUT <= BRANCH_MEM;
+			R_OUT <= R_MEM;
+			B_FORWARD_OUT <= B_FORWARD_MEM;
+			INSTR_OUT <= INSTR_MEM;
+			R_64_OUT <= R_64_MEM;
 
-            if(falling_edge(CLOCK)) then
-                control(0) <= CONTROL_BRANCH_IN;
-                control(1) <= CONTROL_ZERO_IN;
-                control(2) <= CONTROL_MEM_READ_IN;
-                control(3) <= CONTROL_MEM_WRITE_IN;
-                control(4) <= CONTROL_REG_WRITE_IN;
-                control(5) <= CONTROL_MEM_TO_REG_IN;
-            
-                registers <= REG_WRITE_IN;
-                
-                values(31 downto 0) <= PC_IN;
-                values(63 downto 32) <= ALU_RESULT_IN;
-                values(95 downto 63) <= WRITE_DATA_IN;
-            end if;
+			BRANCH_MEM <= BRANCH_IN;
+			R_MEM <= R_IN;
+			B_FORWARD_MEM <= B_FORWARD_IN;
+			INSTR_MEM <= INSTR_IN;
+			R_64_MEM <= R_64_IN;
 
-        CONTROL_BRANCH_OUT <= control(0);
-        CONTROL_ZERO_OUT <= control(1);
-        CONTROL_MEM_READ_OUT <= control(2);
-        CONTROL_MEM_WRITE_OUT <= control(3);
-        CONTROL_REG_WRITE_OUT <= control(4);
-        CONTROL_MEM_TO_READ_OUT <= control(5);
+		end if;
 
-        REG_WRITE_OUT <= registers;
+	end process;
 
-        PC_OUT <= values(31 downto 0);
-        ALU_RESULT_OUT <= values(63 downto 32);
-        WRITE_DATA_IN <= values(95 downto 63);
-
-end arch;
-=======
-library IEEE;
-
-use ieee.std_logic_1164.all;
-
-entity EX_MEM_REGISTER is
-    port(
-        --Inputs--
-        --Change as required--
-        CLOCK,
-        CONTROL_BRANCH_IN,
-        CONTROL_ZERO_IN,
-        CONTROL_MEM_READ_IN,
-        CONTROL_MEM_WRITE_IN, 
-        CONTROL_REG_WRITE_IN,
-        CONTROL_MEM_TO_REG_IN : in std_logic;
-
-        PC_IN,
-        ALU_RESULT_IN,
-        WRITE_DATA_IN : in std_logic_vector(31 downto 0);
-        
-        REG_WRITE_IN: in std_logic_vector(4 downto 0);
-
-        --Outputs--
-        --Change as required--
-        CONTROL_BRANCH_OUT,
-        CONTROL_ZERO_OUT,
-        CONTROL_MEM_READ_OUT,
-        CONTROL_MEM_WRITE_OUT,
-        CONTROL_REG_WRITE_OUT,
-        CONTROL_MEM_TO_REG_OUT : out std_logic;
-
-        PC_OUT,
-        ALU_RESULT_OUT,
-        WRITE_DATA_OUT : out std_logic_vector(31 downto 0);
-
-        REG_WRITE_OUT : out std_logic_vector(4 downto 0)
-
-    );
-
-end EX_MEM_REGISTER;
-
-
-architecture arch of EX_MEM_REGISTER is
-    
-    signal control : std_logic_vector(5 downto 0);
-    signal registers : std_logic_vector(4 downto 0);
-    signal values : std_logic_vector(95 downto 0);
-
-    begin
-
-        pipeline_buffer : process(CLOCK)
-	        begin
-                if(falling_edge(CLOCK)) then
-                    control(0) <= CONTROL_BRANCH_IN;
-                    control(1) <= CONTROL_ZERO_IN;
-                    control(2) <= CONTROL_MEM_READ_IN;
-                    control(3) <= CONTROL_MEM_WRITE_IN;
-                    control(4) <= CONTROL_REG_WRITE_IN;
-                    control(5) <= CONTROL_MEM_TO_REG_IN;
-                
-                    registers <= REG_WRITE_IN;
-                    
-                    values(31 downto 0) <= PC_IN;
-                    values(63 downto 32) <= ALU_RESULT_IN;
-                    values(95 downto 63) <= WRITE_DATA_IN;
-                end if;
-            end process pipeline_buffer;
-
-            CONTROL_BRANCH_OUT <= control(0);
-            CONTROL_ZERO_OUT <= control(1);
-            CONTROL_MEM_READ_OUT <= control(2);
-            CONTROL_MEM_WRITE_OUT <= control(3);
-            CONTROL_REG_WRITE_OUT <= control(4);
-            CONTROL_MEM_TO_REG_OUT <= control(5);
-
-            REG_WRITE_OUT <= registers;
-
-            PC_OUT <= values(31 downto 0);
-            ALU_RESULT_OUT <= values(63 downto 32);
-            WRITE_DATA_OUT <= values(95 downto 64);
-
-end arch;
->>>>>>> d3e7866d64e04b3b1e272c09c02e9c57dd037623
+end architecture;
