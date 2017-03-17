@@ -41,6 +41,7 @@ CONSTANT clk_period : time := 1 ns;
 SIGNAL clk: STD_LOGIC := '0';
 signal ri1, ri2, wr : std_logic_vector(4 downto 0);
 signal wd : std_logic_vector(31 downto 0);
+signal whilo : std_logic_vector(63 downto 0);
 signal pcin : std_logic_vector(31 downto 0);
 signal cl, crw, cgh, cgl : std_logic;
 signal rdo1, rdo2 : std_logic_vector(31 downto 0);
@@ -54,6 +55,7 @@ port map(
     ri2,
     wr,
     wd,
+    whilo,
     pcin,
     cl,
     crw,

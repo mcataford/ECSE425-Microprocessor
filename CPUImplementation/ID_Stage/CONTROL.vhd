@@ -13,10 +13,10 @@ entity CONTROL is
         BRANCH : out std_logic;
         MEM_READ : out std_logic;
         MEM_TO_REG : out std_logic;
-        ALU_OP : out std_logic_vector(3 downto 0);
         MEM_WRITE : out std_logic;
         ALU_SRC : out std_logic;
         REG_WRITE : out std_logic;
+        ALU_OP : out std_logic_vector(3 downto 0);
         GET_HI : out std_logic;
         GET_LO : out std_logic;
         CONTROL_JAL : out std_logic
@@ -163,6 +163,7 @@ architecture arch of CONTROL is
             CONTROL_JAL <= controlLink;
             GET_HI <= getHi;
             GET_LO <= getLo;
+
 
             REG_DEST <= output(6);
             BRANCH <= output(5);

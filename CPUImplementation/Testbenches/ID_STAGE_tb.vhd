@@ -10,30 +10,25 @@ architecture behavior of ID_TB is
 component ID is
 
  port(
----Inputs---
-        CLOCK : in std_logic;
-        INSTRUCTION : in std_logic_vector (31 downto 0);
-        PC_IN : in std_logic_vector (31 downto 0);
-        WB_REG_IN : std_logic_vector (4 downto 0);
-        WB_DATA : in std_logic_vector (31 downto 0);
-        WB_HILO : in std_logic_vector(63 downto 0);
-        --Control Signals In--
-        CONTROL_REG_WRITE_IN : in std_logic;
-        ---Control Signals---
-        CONTROL_BRANCH_OUT,
-        CONTROL_MEM_READ_OUT,
-        CONTROL_MEM_TO_REG_OUT,
-        CONTROL_MEM_WRITE_OUT,
-        CONTROL_ALU_SRC_OUT,
-        CONTROL_REG_WRITE_OUT : out std_logic;
-        CONTROL_ALU_OP_OUT : out std_logic_vector(3 downto 0);
-        ---Data Outputs---
-        WB_REG_OUT : out std_logic_vector(4 downto 0);
-        PC_OUT : out std_logic_vector (31 downto 0);
-        SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
-        REG_OUT1 : out std_logic_vector (31 downto 0);
-        REG_OUT2 : out std_logic_vector (31 downto 0)
-    );
+    ---Inputs---
+    CLOCK : in std_logic;
+    INSTRUCTION_IN : in std_logic_vector (31 downto 0);
+    PC_IN : in std_logic_vector (31 downto 0);
+    WRITE_REG : std_logic_vector (4 downto 0);
+    WRITE_DATA : in std_logic_vector (31 downto 0);
+    WRITE_HILO : in std_logic_vector(63 downto 0);
+    --Control Signals In--
+    CONTROL_REG_WRITE_IN : in std_logic;
+    ---Control Signals Out---
+    CONTROL_VECTOR : out std_logic_vector(9 downto 0);
+    ---Data Outputs---
+    INSTRUCTION_OUT : out std_logic_vector(31 downto 0);
+    PC_OUT : out std_logic_vector (31 downto 0);
+    RD_OUT : out std_logic_vector(4 downto 0);
+    SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
+    REG_OUT1 : out std_logic_vector (31 downto 0);
+    REG_OUT2 : out std_logic_vector (31 downto 0)
+);
 
 end component;
 	
@@ -45,20 +40,16 @@ signal instructions : MEM := ("00100000000010110000011111010000","00100000000011
 signal i : integer :=39;
 
 
-signal inst : std_logic_vector(31 downto 0);
+signal instout : std_logic_vector(31 downto 0);
+signal instin : std_logic_vector(31 downto 0);
 signal pcin : std_logic_vector(31 downto 0);
+signal pcout : std_logic_vector(31 downto 0);
 signal wbreg_in : std_logic_vector(4 downto 0);
 signal wbdata : std_logic_vector(31 downto 0);
 signal wbhilo : std_logic_vector(63 downto 0);
 signal CTRL_REG_WRITE_IN : std_logic;
 
-signal CTRL_BRANCH_OUT : std_logic;
-signal CTRL_MEM_TO_REG_OUT : std_logic;
-signal CTRL_MEM_READ_OUT : std_logic;
-signal CTRL_ALU_OP_OUT : std_logic_vector(3 downto 0);
-signal CTRL_MEM_WRITE_OUT : std_logic;
-signal CTRL_ALU_SRC_OUT : std_logic;
-signal CTRL_REG_WRITE_OUT : std_logic;
+signal control : std_logic_vector(9 downto 0);
 
 signal wbreg_out : std_logic_vector(4 downto 0);
 signal pc_out : std_logic_vector(31 downto 0);
@@ -71,27 +62,20 @@ begin
 stage : ID
 port map(
     --Inputs--
-	CLOCK => clk,
-	INSTRUCTION => inst,
-	PC_IN => pcin,
-    WB_REG_IN => wbreg_in,
-	WB_DATA => wbdata,
-    WB_HILO => wbhilo,
-    --Control signal in--
-    CONTROL_REG_WRITE_IN => CTRL_REG_WRITE_IN,
-    --Control signal out--
-	CONTROL_BRANCH_OUT=> CTRL_BRANCH_OUT,	
-    CONTROL_MEM_READ_OUT => CTRL_MEM_READ_OUT,
-	CONTROL_MEM_TO_REG_OUT => CTRL_MEM_TO_REG_OUT,
-    CONTROL_MEM_WRITE_OUT => CTRL_MEM_WRITE_OUT,
-	CONTROL_ALU_SRC_OUT => CTRL_ALU_SRC_OUT,
-    CONTROL_REG_WRITE_OUT => CTRL_REG_WRITE_OUT,
-	CONTROL_ALU_OP_OUT => CTRL_ALU_OP_OUT,
-    WB_REG_OUT => wbreg_out,
-	PC_OUT => pc_out,
-    SIGN_EXTENDED_OUT => SIGN_EXTEND_OUT,
-	REG_OUT1 => r1,
-	REG_OUT2 => r2
+	CLOCK=>clk,
+    INSTRUCTION_IN=>instin,
+    PC_IN=>pcin,
+    WRITE_REG=>wbreg_in,
+    WRITE_DATA=>wbdata,
+    WRITE_HILO=>wbhilo,
+    CONTROL_REG_WRITE_IN=>CTRL_REG_WRITE_IN,
+    CONTROL_VECTOR=>control,
+    INSTRUCTION_OUT=>instout,
+    PC_OUT=>pcout,
+    RD_OUT=>wbreg_out,
+    SIGN_EXTENDED_OUT=>SIGN_EXTEND_OUT,
+    REG_OUT1=>r1,
+    REG_OUT2=>r2
 );
 
 clk_process : PROCESS
@@ -107,27 +91,25 @@ test : PROCESS
 BEGIN
 wait for clk_period;
 
-inst <= instructions(i);
+instin <= instructions(i);
 pcin <= "00000000000000000000000000000000";
 i <= i-1;
 
 wait for clk_period;
 
-inst <= instructions(i);
+instin <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
 i <= i-1;
 
 wait for clk_period;
 
-inst <= instructions(i);
+instin <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
-wbreg_in <= "01010";
-wbdata <="00000000000000000000000000110110";
 i <= i-1;
 
 wait for clk_period;
 
-inst <= instructions(i);
+instin <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
 CTRL_REG_WRITE_IN <= '1';
 wbreg_in <= "01010";
@@ -136,20 +118,20 @@ i <= i-1;
 
 wait for clk_period;
 
-inst <= instructions(i);
+instin <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
 wbhilo <="0000000000000000000000000000000000000000000001011011101111011111";
 i <= i-1;
 
 wait for clk_period;
 
-inst <= "00000000000000000100100000010010";
+instin <= "00000000000000000100100000010010";
 pcin <= pcin or "00000000000000000000000000000001";
 i <= i-1;
 
 wait for clk_period;
 
-inst <= "00000001010010110100100000100000";
+instin <= "00000001010010110100100000100000";
 pcin <= pcin or "00000000000000000000000000000100";
 i <= i-1;
 
