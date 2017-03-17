@@ -11,7 +11,8 @@ A,B,I,Ins,PC: in std_logic_vector(31 downto 0);
 ALU_CONTROL: in std_logic_vector(2 downto 0);
 SELECTOR1, SELECTOR2: in std_logic;
 BRANCH: out std_logic;
-R,FB,FIns: out std_logic_vector(31 downto 0)
+R,FB,FIns: out std_logic_vector(31 downto 0);
+R_64: out std_logic_vector(63 downto 0)
 
 );
 
@@ -29,6 +30,7 @@ port(
 	A,B: in std_logic_vector(31 downto 0);
 	ALU_CONTROL: in std_logic_vector(2 downto 0);
 	OUTPUT: out std_logic_vector(31 downto 0);
+	OUTPUT_64: out std_logic_vector(63 downto 0);
 	ZERO, OVERFLOW: out std_logic
 );
 
@@ -47,7 +49,7 @@ end component;
 begin
 
 --ALU Unit
-ALU_unit : ALU port map(MUX1_OUT,MUX2_OUT,ALU_CONTROL,R,STATUS(0),STATUS(1));
+ALU_unit : ALU port map(MUX1_OUT,MUX2_OUT,ALU_CONTROL,R,R_64,STATUS(0),STATUS(1));
 
 --Multiplexers gating the ALU input
 MUX1 : MUX port map(A,PC,SELECTOR1,MUX1_OUT);
