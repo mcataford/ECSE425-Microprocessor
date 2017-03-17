@@ -14,8 +14,6 @@ entity DATAREGISTER is
         WRITE_REG : in std_logic_vector (4 downto 0);
         WRITE_DATA : in std_logic_vector (31 downto 0);
         WRITE_HILO : in std_logic_vector(63 downto 0);
-
-        ---Internal Signals---
         PC_IN : in std_logic_vector (31 downto 0);
 
         ---Control Signals---
