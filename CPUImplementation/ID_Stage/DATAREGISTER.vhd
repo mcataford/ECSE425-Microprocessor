@@ -36,7 +36,7 @@ architecture arch of DATAREGISTER is
 
     type MEM is array (31 downto 0) of std_logic_vector(31 downto 0);
     --signal REG : MEM:=(others=>"00000000000000000000000000000000");
-    signal HI, LO : std_logic_vector(31 downto 0):=(others=>'1');
+    signal HI, LO : std_logic_vector(31 downto 0);
     signal REG : MEM:=("00000000000000000000000000000000","00000000000000000000000000000001","00000000000000000000000000000010","00000000000000000000000000000011","00000000000000000000000000000100","00000000000000000000000000000101","00000000000000000000000000000110","00000000000000000000000000000111","00000000000000000000000000001000","00000000000000000000000000001001","00000000000000000000000000001010","00000000000000000000000000001011","00000000000000000000000000001100","00000000000000000000000000001101","00000000000000000000000000001110","00000000000000000000000000001111","00000000000000000000000000000000","00000000000000000000000000000001","00000000000000000000000000000010","00000000000000000000000000000011","00000000000000000000000000000100","00000000000000000000000000000101","00000000000000000000000000000110","00000000000000000000000000000111","00000000000000000000000000001000","00000000000000000000000000001001","00000000000000000000000000001010","00000000000000000000000000001011","00000000000000000000000000001100","00000000000000000000000000001101","00000000000000000000000000001110","00000000000000000000000000000000");
     --type MEM is array (3 downto 0) of std_logic_vector(31 downto 0);
     --signal REG : MEM := ("00000000000000000000000000000000","00000000000000000000000000000001","01010101010101010101010101010101","00000000000000000000000000000000");
@@ -58,18 +58,12 @@ architecture arch of DATAREGISTER is
                 LO <= WRITE_HILO(31 downto 0);
         end process reg_hilo;
 
-        reg_op : process(CLOCK, READ_REG1, READ_REG2)
+        reg_op : process(CLOCK)
             begin
 
             --Writing to register on the falling edge of clk--
-            if(falling_edge(CLOCK) AND (CONTROL_REG_WRITE = '1' OR CONTROL_GET_HI = '1' OR CONTROL_GET_LO = '1')) then
-                if(CONTROL_REG_WRITE = '1') then
-                    REG(rd) <= WRITE_DATA;
-                elsif(CONTROL_GET_HI = '1') then
-                    REG(rd) <= HI;
-                elsif(CONTROL_GET_LO = '1') then
-                    REG(rd) <= LO;
-                end if;
+            if(falling_edge(CLOCK) AND CONTROL_REG_WRITE = '1') then
+                REG(rd) <= WRITE_DATA;
             end if;
 
             --Reading out of register on the risign edge of clk--
@@ -77,8 +71,16 @@ architecture arch of DATAREGISTER is
                 if(CONTROL_LINK = '1') then
                     REG(3) <= PC_IN;
                 end if;
-                READ_DATA_OUT1 <= REG(rs);
-                READ_DATA_OUT2 <= REG(rt);
+                if(CONTROL_GET_HI = '1') then
+                    READ_DATA_OUT1 <= REG(0);
+                    READ_DATA_OUT2 <= HI;
+                elsif(CONTROL_GET_LO = '1') then
+                    READ_DATA_OUT1 <= REG(0);
+                    READ_DATA_OUT2 <= LO;
+                else
+                    READ_DATA_OUT1 <= REG(rs);
+                    READ_DATA_OUT2 <= REG(rt);
+                end if;
             end if;
         end process reg_op;
 end arch;

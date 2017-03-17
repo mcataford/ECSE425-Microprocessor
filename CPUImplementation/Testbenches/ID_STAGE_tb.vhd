@@ -10,22 +10,25 @@ architecture behavior of ID_TB is
 component ID is
 
  port(
-        ---Inputs---
+---Inputs---
         CLOCK : in std_logic;
         INSTRUCTION : in std_logic_vector (31 downto 0);
         PC_IN : in std_logic_vector (31 downto 0);
+        WB_REG_IN : std_logic_vector (4 downto 0);
         WB_DATA : in std_logic_vector (31 downto 0);
-        WB_HILO : in std_logic_vector (63 downto 0);
-
+        WB_HILO : in std_logic_vector(63 downto 0);
+        --Control Signals In--
+        CONTROL_REG_WRITE_IN : in std_logic;
         ---Control Signals---
-        CONTROL_BRANCH : out std_logic;
-        CONTROL_MEM_TO_REG : out std_logic;
-        CONTROL_MEM_READ : out std_logic;
-        CONTROL_ALU_OP : out std_logic_vector(3 downto 0);
-        CONTROL_MEM_WRITE : out std_logic;
-        CONTROL_ALU_SRC : out std_logic;
-
-        ---Outputs---
+        CONTROL_BRANCH_OUT,
+        CONTROL_MEM_READ_OUT,
+        CONTROL_MEM_TO_REG_OUT,
+        CONTROL_MEM_WRITE_OUT,
+        CONTROL_ALU_SRC_OUT,
+        CONTROL_REG_WRITE_OUT : out std_logic;
+        CONTROL_ALU_OP_OUT : out std_logic_vector(3 downto 0);
+        ---Data Outputs---
+        WB_REG_OUT : out std_logic_vector(4 downto 0);
         PC_OUT : out std_logic_vector (31 downto 0);
         SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
         REG_OUT1 : out std_logic_vector (31 downto 0);
@@ -44,15 +47,20 @@ signal i : integer :=39;
 
 signal inst : std_logic_vector(31 downto 0);
 signal pcin : std_logic_vector(31 downto 0);
+signal wbreg_in : std_logic_vector(4 downto 0);
 signal wbdata : std_logic_vector(31 downto 0);
 signal wbhilo : std_logic_vector(63 downto 0);
-signal CTRL_BRANCH : std_logic;
-signal CTRL_MEM_TO_REG : std_logic;
-signal CTRL_MEM_READ : std_logic;
-signal CTRL_ALU_OP : std_logic_vector(3 downto 0);
-signal CTRL_MEM_WRITE : std_logic;
-signal CTRL_ALU_SRC : std_logic;
+signal CTRL_REG_WRITE_IN : std_logic;
 
+signal CTRL_BRANCH_OUT : std_logic;
+signal CTRL_MEM_TO_REG_OUT : std_logic;
+signal CTRL_MEM_READ_OUT : std_logic;
+signal CTRL_ALU_OP_OUT : std_logic_vector(3 downto 0);
+signal CTRL_MEM_WRITE_OUT : std_logic;
+signal CTRL_ALU_SRC_OUT : std_logic;
+signal CTRL_REG_WRITE_OUT : std_logic;
+
+signal wbreg_out : std_logic_vector(4 downto 0);
 signal pc_out : std_logic_vector(31 downto 0);
 signal SIGN_EXTEND_OUT : std_logic_vector(31 downto 0);
 signal r1 : std_logic_vector(31 downto 0);
@@ -66,16 +74,22 @@ port map(
 	CLOCK => clk,
 	INSTRUCTION => inst,
 	PC_IN => pcin,
+    WB_REG_IN => wbreg_in,
 	WB_DATA => wbdata,
     WB_HILO => wbhilo,
-    --Outputs--
-	CONTROL_BRANCH => CTRL_BRANCH,
-	CONTROL_MEM_TO_REG => CTRL_MEM_TO_REG,
-	CONTROL_MEM_READ => CTRL_MEM_READ,
-	CONTROL_ALU_OP => CTRL_ALU_OP,
-	CONTROL_MEM_WRITE => CTRL_MEM_WRITE,
-	CONTROL_ALU_SRC => CTRL_ALU_SRC,
+    --Control signal in--
+    CONTROL_REG_WRITE_IN => CTRL_REG_WRITE_IN,
+    --Control signal out--
+	CONTROL_BRANCH_OUT=> CTRL_BRANCH_OUT,	
+    CONTROL_MEM_READ_OUT => CTRL_MEM_READ_OUT,
+	CONTROL_MEM_TO_REG_OUT => CTRL_MEM_TO_REG_OUT,
+    CONTROL_MEM_WRITE_OUT => CTRL_MEM_WRITE_OUT,
+	CONTROL_ALU_SRC_OUT => CTRL_ALU_SRC_OUT,
+    CONTROL_REG_WRITE_OUT => CTRL_REG_WRITE_OUT,
+	CONTROL_ALU_OP_OUT => CTRL_ALU_OP_OUT,
+    WB_REG_OUT => wbreg_out,
 	PC_OUT => pc_out,
+    SIGN_EXTENDED_OUT => SIGN_EXTEND_OUT,
 	REG_OUT1 => r1,
 	REG_OUT2 => r2
 );
@@ -95,28 +109,29 @@ wait for clk_period;
 
 inst <= instructions(i);
 pcin <= "00000000000000000000000000000000";
-wbdata <="00000000000000000000000000000000";
 i <= i-1;
 
 wait for clk_period;
 
 inst <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
-wbdata <="00000000000000000000000000000000";
 i <= i-1;
 
 wait for clk_period;
 
 inst <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
-wbdata <="00000000000000000000000000000000";
+wbreg_in <= "01010";
+wbdata <="00000000000000000000000000110110";
 i <= i-1;
 
 wait for clk_period;
 
 inst <= instructions(i);
 pcin <= pcin OR "00000000000000000000000000000001";
-wbdata <="00000000000000000000000000000000";
+CTRL_REG_WRITE_IN <= '1';
+wbreg_in <= "01010";
+wbdata <="00000000000000000000000000110110";
 i <= i-1;
 
 wait for clk_period;
