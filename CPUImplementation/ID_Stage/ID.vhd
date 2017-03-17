@@ -18,17 +18,10 @@ entity ID is
         CONTROL_REG_WRITE_IN : in std_logic;
 
         ---Control Signals---
-        CONTROL_BRANCH_OUT,
-        CONTROL_MEM_READ_OUT,
-        CONTROL_MEM_TO_REG_OUT,
-        CONTROL_MEM_WRITE_OUT,
-        CONTROL_ALU_SRC_OUT,
-        CONTROL_REG_WRITE_OUT : out std_logic;
-
-        CONTROL_ALU_OP_OUT : out std_logic_vector(3 downto 0);
+        CONTROL_OUT : out std_logic_vector(9 downto 0);
 
         ---Data Outputs---
-        INSTRUCTION_OUT : std_logic_vector(31 downto 0);
+        INSTRUCTION_OUT :out std_logic_vector(31 downto 0);
         WB_REG_OUT : out std_logic_vector(4 downto 0);
 
         PC_OUT : out std_logic_vector (31 downto 0);
@@ -63,8 +56,8 @@ architecture arch of ID is
             ---Control Signals---
             CONTROL_LINK : in std_logic;
             CONTROL_REG_WRITE : in std_logic;
-            CONTROL_GET_HI : std_logic;
-            CONTROL_GET_LO : std_logic;
+            CONTROL_GET_HI : in std_logic;
+            CONTROL_GET_LO : in std_logic;
             ---Outputs---
             READ_DATA_OUT1 : out std_logic_vector (31 downto 0);
             READ_DATA_OUT2 : out std_logic_vector (31 downto 0)
