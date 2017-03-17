@@ -10,7 +10,8 @@ entity EX_MEM_REGISTER is
         CONTROL_BRANCH_IN,
         CONTROL_ZERO_IN,
         CONTROL_MEM_READ_IN,
-        CONTROL_MEM_WRITE_IN,  
+        CONTROL_MEM_WRITE_IN, 
+        CONTROL_REG_WRITE_IN,
         CONTROL_MEM_TO_REG_IN : in std_logic;
 
         PC_IN,
@@ -25,6 +26,7 @@ entity EX_MEM_REGISTER is
         CONTROL_ZERO_OUT,
         CONTROL_MEM_READ_OUT,
         CONTROL_MEM_WRITE_OUT,
+        CONTROL_REG_WRITE_OUT,
         CONTROL_MEM_TO_REG_OUT : out std_logic;
 
         PC_OUT,
@@ -40,7 +42,7 @@ end EX_MEM_REGISTER;
 
 architecture arch of EX_MEM_REGISTER is
     
-    signal control : std_logic_vector(4 downto 0);
+    signal control : std_logic_vector(5 downto 0);
     signal registers : std_logic_vector(4 downto 0);
     signal values : std_logic_vector(95 downto 0);
 
@@ -52,7 +54,8 @@ architecture arch of EX_MEM_REGISTER is
                 control(1) <= CONTROL_ZERO_IN;
                 control(2) <= CONTROL_MEM_READ_IN;
                 control(3) <= CONTROL_MEM_WRITE_IN;
-                control(4) <= CONTROL_MEM_TO_REG_IN;
+                control(4) <= CONTROL_REG_WRITE_IN;
+                control(5) <= CONTROL_MEM_TO_REG_IN;
             
                 registers <= REG_WRITE_IN;
                 
@@ -65,7 +68,8 @@ architecture arch of EX_MEM_REGISTER is
         CONTROL_ZERO_OUT <= control(1);
         CONTROL_MEM_READ_OUT <= control(2);
         CONTROL_MEM_WRITE_OUT <= control(3);
-        CONTROL_MEM_TO_READ_OUT <= control(4);
+        CONTROL_REG_WRITE_OUT <= control(4);
+        CONTROL_MEM_TO_READ_OUT <= control(5);
 
         REG_WRITE_OUT <= registers;
 
