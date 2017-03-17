@@ -37,7 +37,7 @@ entity ID_EX_REGISTER is
 
 	--REGISTER DATA OUT--
         REG_OUT1,
-        REG_OUT2 : out std_logic_vector(31 downto 0);
+        REG_OUT2 : out std_logic_vector(31 downto 0) := (others => '0');
 	
 	--INSTRUCTION OUT--
 	INSTR_OUT: out std_logic_vector(31 downto 0)
