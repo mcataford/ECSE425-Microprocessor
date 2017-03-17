@@ -9,6 +9,7 @@ port(
 	A,B: in std_logic_vector(31 downto 0);
 	ALU_CONTROL: in std_logic_vector(2 downto 0);
 	OUTPUT: out std_logic_vector(31 downto 0);
+	OUTPUT_64: out std_logic_vector(63 downto 0);
 	ZERO, OVERFLOW: out std_logic
 );
 
@@ -25,7 +26,7 @@ signal LC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
 signal LC_MODE: std_logic_vector(1 downto 0) := "00";
 
 --Intermediate signals, MC interactions
-signal MC_OUTPUT: std_logic_vector(31 downto 0) := (others => '0');
+signal MC_OUTPUT: std_logic_vector(63 downto 0) := (others => '0');
 
 --Intermediate signals, DC interactions
 signal DC_QUOTIENT, DC_REMAINDER: std_logic_vector(31 downto 0) := (others => '0');
@@ -57,7 +58,7 @@ component MULTIPLIERCELL
 
 port(
 	A,B: in std_logic_vector(31 downto 0);
-	OUTPUT: out std_logic_vector(31 downto 0)
+	OUTPUT: out std_logic_vector(63 downto 0)
 );
 
 end component;
@@ -94,10 +95,12 @@ LC_MODE <= "00" when ALU_CONTROL = "001" else
 
 OUTPUT <= WFA_S when ALU_CONTROL = "000" else
 	LC_OUTPUT when ALU_CONTROL = "001" or ALU_CONTROL = "010" or ALU_CONTROL = "011" or ALU_CONTROL = "100" else
-	MC_OUTPUT when ALU_CONTROL = "101" else
-	--TODO: Integrate remainder.
-	DC_QUOTIENT when ALU_CONTROL = "110" else
+	(others => '0') when ALU_CONTROL = "101" or ALU_CONTROL = "110" else
 	(others => 'Z');  
+
+OUTPUT_64 <= MC_OUTPUT when ALU_CONTROL = "101" else
+		DC_QUOTIENT & DC_REMAINDER when ALU_CONTROL = "110" else
+		(others => 'Z');
 
 OVERFLOW <= STATUS_FLAGS(0);
 ZERO <= STATUS_FLAGS(1);
