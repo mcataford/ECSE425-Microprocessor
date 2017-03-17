@@ -159,17 +159,21 @@ architecture arch of CONTROL is
                     output <= "0000000";
                     opOut <= "1111";
                 end case;
-        end process control_logic;
-        REG_DEST <= output(6);
-        BRANCH <= output(5);
-        MEM_READ <= output(4);
-        MEM_TO_REG <= output(3);
-        MEM_WRITE <= output(2);
-        ALU_SRC <= output(1);
-        REG_WRITE <= output(0);
-        ALU_OP <= opOut;
 
-        CONTROL_JAL <= controlLink;
-        GET_HI <= getHi;
-        GET_LO <= getLo;
+            CONTROL_JAL <= controlLink;
+            GET_HI <= getHi;
+            GET_LO <= getLo;
+
+            REG_DEST <= output(6);
+            BRANCH <= output(5);
+            MEM_READ <= output(4);
+            MEM_TO_REG <= output(3);
+            MEM_WRITE <= output(2);
+            ALU_SRC <= output(1);
+            REG_WRITE <= output(0);
+            ALU_OP <= opOut;
+        end process control_logic;
+
+
+
 end arch;
