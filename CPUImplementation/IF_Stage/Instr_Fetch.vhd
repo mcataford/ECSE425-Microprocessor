@@ -14,7 +14,7 @@ entity IF_STAGE is
 		PC_SRC: in std_logic; --MUX select
 		ALU_PC: in std_logic_vector(31 downto 0); --One of the MUX inputs
 		--Outputs--
-		PC_OUT: out std_logic_vector(31 downto 0);
+		PC_OUT: out std_logic_vector(31 downto 0) := (others => '0');
 		INSTR: out std_logic_vector(31 downto 0)
 	);
 end IF_STAGE;
