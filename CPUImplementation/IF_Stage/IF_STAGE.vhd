@@ -33,16 +33,22 @@ signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
 component WORDFULLADDER 
 	port(
+		--Operands--
 		A,B: in	std_logic_vector(31 downto 0);
+		--Result--
 		S: out std_logic_vector(31 downto 0);
+		--Carry out--
 		Cout: out std_logic
 	);
 end component;
 
 component MUX
 	port (
+		--Multiplexer inputs--
 		A,B: in std_logic_vector(31 downto 0);
+		--Multiplexer selector--
 		SELECTOR: in std_logic;
+		--Multiplexer output--
 		OUTPUT: out std_logic_vector(31 downto 0)
 	);
 	
@@ -50,10 +56,15 @@ end component;
 
 component PC_Register is 
 	port(
+		--Clock signal--
 		CLOCK: in std_logic;
+		--Reset signal--
 		RESET: in std_logic;
+		--Write access--
 		REG_WRITE: in std_logic;
+		--Write input--
 		DATA_IN: in std_logic_vector(31 downto 0);
+		--Write output--
 		DATA_OUT: out std_logic_vector(31 downto 0)
 	);
 end component PC_Register;
@@ -78,9 +89,15 @@ end component;
 --Port maps--
 begin
 
+--Word-width full adder--
 WFA : WORDFULLADDER port map(PC_CURRENT, std_logic_vector(to_unsigned(4,32)), PC_INCR, WFA_Cout);
+--Program counter accumulator register--
 PC_REG : PC_Register port map(CLOCK, '0', '1', PC_FEEDBACK, PC_CURRENT);
+
+--Multiplexer--
 MX : MUX port map(PC_INCR, ALU_PC, PC_SRC, PC_FEEDBACK);
+
+--Instruction memory--
 INSTR_MEM : memory port map(CLOCK, std_logic_vector(to_unsigned(0,32)), INSTR_ADDR, '0', '1', INSTR, WAIT_REQ);
 
 process(CLOCK)
