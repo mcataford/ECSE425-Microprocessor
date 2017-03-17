@@ -5,33 +5,62 @@ use ieee.numeric_std.all;
 
 entity EX_STAGE is
 
-port(
-
-A,B,I,Ins,PC: in std_logic_vector(31 downto 0);
-ALU_CONTROL: in std_logic_vector(2 downto 0);
-SELECTOR1, SELECTOR2: in std_logic;
-BRANCH: out std_logic;
-R,FB,FIns: out std_logic_vector(31 downto 0);
-R_64: out std_logic_vector(63 downto 0)
-
-);
+	port(
+		--INPUT--
+		--ALU operands
+		A,B,
+		--Immediate--
+		IMM,
+		--Instruction forward--
+		INSTR_IN,
+		--PC forward--
+		PC_IN: in std_logic_vector(31 downto 0);
+		--Control signal ALUOP--
+		ALU_CONTROL: in std_logic_vector(3 downto 0);
+		--Multiplexer control--
+		SELECTOR1, 
+		SELECTOR2: in std_logic;
+		--OUTPUT--
+		--Branch Taken--
+		BRANCH: out std_logic := '0';
+		--ALU 32b out--
+		R,
+		--Operand B forward--
+		B_OUT,
+		--Instruction forward--
+		INSTR_OUT: out std_logic_vector(31 downto 0) := (others => '0');
+		--ALU 64b out--
+		R_64: out std_logic_vector(63 downto 0) := (others => '0')
+	
+	);
 
 end entity;
 
 architecture EX_STAGE_Impl of EX_STAGE is
 
-signal STATUS: std_logic_vector(2 downto 0) := "000";
-signal MUX1_OUT, MUX2_OUT: std_logic_vector(31 downto 0);
+--Intermediate signals
+
+signal STATUS: std_logic_vector(2 downto 0) := (others => '0');
+--Multiplexer output--
+signal MUX1_OUT, MUX2_OUT: std_logic_vector(31 downto 0) := (others => '0');
+
+--Component definition--
 
 component ALU
 
 port(
-	--Inputs
+	--INPUT
+	--Operands--
 	A,B: in std_logic_vector(31 downto 0);
-	ALU_CONTROL: in std_logic_vector(2 downto 0);
-	OUTPUT: out std_logic_vector(31 downto 0);
-	OUTPUT_64: out std_logic_vector(63 downto 0);
-	ZERO, OVERFLOW: out std_logic
+	--Control signal ALUOP--	
+	ALU_CONTROL: in std_logic_vector(3 downto 0);
+	--OUTPUT--
+	--ALU 32b out--
+	OUTPUT: out std_logic_vector(31 downto 0) := (others => '0');
+	--ALU 64b out--
+	OUTPUT_64: out std_logic_vector(63 downto 0) := (others => '0');
+	--Status flags--	
+	ZERO, OVERFLOW: out std_logic := '0'
 );
 
 end component;
@@ -39,26 +68,45 @@ end component;
 component MUX
 
 port(
+	--Operands--
 	A,B: in std_logic_vector(31 downto 0);
+	--Selector--
 	SELECTOR: in std_logic;
-	OUTPUT: out std_logic_vector(31 downto 0) 
+	--Chosen signal--
+	OUTPUT: out std_logic_vector(31 downto 0) := (others => '0')
 );
 
 end component;
 
 begin
 
---ALU Unit
-ALU_unit : ALU port map(MUX1_OUT,MUX2_OUT,ALU_CONTROL,R,R_64,STATUS(0),STATUS(1));
+--ALU Unit--
+ALU_unit : ALU port map(
+	--INPUT--
+	--Operands (from MUX)--
+	MUX1_OUT,
+	MUX2_OUT,
+	--Control signal--
+	ALU_CONTROL,
+	--OUTPUT--
+	--ALU 32b out--
+	R,
+	--ALU 64b out--
+	R_64,
+	--Status flags--
+	STATUS(0),
+	STATUS(1)
+);
 
---Multiplexers gating the ALU input
-MUX1 : MUX port map(A,PC,SELECTOR1,MUX1_OUT);
-MUX2 : MUX port map(B,I,SELECTOR2,MUX2_OUT);
+--Multiplexers gating the ALU input--
+MUX1 : MUX port map(A,PC_IN,SELECTOR1,MUX1_OUT);
+MUX2 : MUX port map(B,IMM,SELECTOR2,MUX2_OUT);
 
---Forwarding
-FB <= B;
-FIns <= Ins;
+--Forwarding--
+B_OUT <= B;
+INSTR_OUT <= INSTR_IN;
 
+--Branch signal - Operand A == 0--
 BRANCH <= '1' when to_integer(unsigned(A)) = 0 else
 	'0';
 
