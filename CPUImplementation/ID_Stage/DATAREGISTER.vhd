@@ -62,7 +62,7 @@ architecture arch of DATAREGISTER is
             begin
 
             --Writing to register on the falling edge of clk--
-            if(falling_edge(CLOCK) AND (CONTROL_REG_WRITE = '1' OR CONTROL_GET_HI = '1' OR CONTROL_GET_LO = '1')) then
+            if(rising_edge(CLOCK) AND (CONTROL_REG_WRITE = '1' OR CONTROL_GET_HI = '1' OR CONTROL_GET_LO = '1')) then
                 if(CONTROL_REG_WRITE = '1') then
                     REG(rd) <= WRITE_DATA;
                 elsif(CONTROL_GET_HI = '1') then
@@ -73,7 +73,7 @@ architecture arch of DATAREGISTER is
             end if;
 
             --Reading out of register on the risign edge of clk--
-            if(rising_edge(CLOCK)) then
+            if(falling_edge(CLOCK)) then
                 if(CONTROL_LINK = '1') then
                     REG(3) <= PC_IN;
                 end if;
