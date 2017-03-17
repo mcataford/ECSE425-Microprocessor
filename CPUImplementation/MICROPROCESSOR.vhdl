@@ -30,34 +30,36 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	end component;
 
 	--ID Signals Here--
-	signal ID_CONTROL_BRANCH, ID_CONTROL_MEM_TO_REG, ID_CONTROL_MEM_READ : std_logic;
-	signal ID_CONTROL_MEM_WRITE, ID_CONTROL_ALU_SRC : std_logic;
-	signal ID_PC_OUT, ID_SIGN_EXTENDED_OUT, ID_REG_OUT1, ID_REG_OUT2 : std_logic_vector(31 downto 0);
-	signal ID_INSTRUCTION, ID_PC_IN, ID_WB_DATA : std_logic_vector(31 downto 0);
-	signal ID_HILO_DATA: std_logic_vector(63 downto 0);
-	signal ID_CONTROL_ALU_OP: std_logic_vector(3 downto 0);
-
+	signal ID_CONTROL_VECTOR_OUT : std_logic_vector(9 downto 0);
+	signal ID_DATA_OUT : std_logic_vector(132 downto 0);
+	signal ID_DATA_IN : std_logic_vector(164 downto 0);
+	signal ID_CONTROL_VECTOR_IN : std_logic;
 	--Definition of ID component--
 	component ID port(
 		---Inputs---
-		CLOCK : in std_logic;
-		INSTRUCTION : in std_logic_vector (31 downto 0);
-		PC_IN : in std_logic_vector (31 downto 0);
-		WB_DATA : in std_logic_vector (31 downto 0);
-		WB_HILO : in std_logic_vector(63 downto 0);
-		---Control Signals---
-		CONTROL_BRANCH : out std_logic;
-		CONTROL_MEM_TO_REG : out std_logic;
-		CONTROL_MEM_READ : out std_logic;
-		CONTROL_ALU_OP : out std_logic_vector(3 downto 0);
-		CONTROL_MEM_WRITE : out std_logic;
-		CONTROL_ALU_SRC : out std_logic;
-		---Data Outputs---
-		PC_OUT : out std_logic_vector (31 downto 0);
-		SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
-		REG_OUT1 : out std_logic_vector (31 downto 0);
-		REG_OUT2 : out std_logic_vector (31 downto 0)
-		);
+        CLOCK : in std_logic;
+        INSTRUCTION : in std_logic_vector (31 downto 0);
+        PC_IN : in std_logic_vector (31 downto 0);
+        WB_REG_IN : std_logic_vector (4 downto 0);
+        WB_DATA : in std_logic_vector (31 downto 0);
+        WB_HILO : in std_logic_vector(63 downto 0);
+        --Control Signals In--
+        CONTROL_REG_WRITE_IN : in std_logic;
+        ---Control Signals---
+        CONTROL_BRANCH_OUT,
+        CONTROL_MEM_READ_OUT,
+        CONTROL_MEM_TO_REG_OUT,
+        CONTROL_MEM_WRITE_OUT,
+        CONTROL_ALU_SRC_OUT,
+        CONTROL_REG_WRITE_OUT : out std_logic;
+        CONTROL_ALU_OP : out std_logic_vector(3 downto 0);
+        ---Data Outputs---
+        WB_REG_OUT : out std_logic_vector(4 downto 0);
+        PC_OUT : out std_logic_vector (31 downto 0);
+        SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
+        REG_OUT1 : out std_logic_vector (31 downto 0);
+        REG_OUT2 : out std_logic_vector (31 downto 0)
+	);
 	end component;
 
 begin
@@ -66,22 +68,30 @@ begin
 	ID_ST : ID port map(
 		--Inputs--
 		CLOCK,
-		ID_INSTRUCTION,
-		ID_PC_IN,
-		ID_WB_DATA,
-		ID_HILO_DATA,
-		--Control Signals--
-		ID_CONTROL_BRANCH,
-		ID_CONTROL_MEM_TO_REG,
-		ID_CONTROL_MEM_READ,
-		ID_CONTROL_ALU_OP,
-		ID_CONTROL_MEM_WRITE,
-		ID_CONTROL_ALU_SRC,
+		ID_DATA_IN(164 downto 133),
+		ID_DATA_IN(132 downto 101),
+		ID_DATA_IN(100 downto 96),
+		ID_DATA_IN(95 downto 64),
+		ID_DATA_IN(63 downto 0),
+		--Control Signals In--
+		ID_CONTROL_VECTOR_IN,
+		--Control Signals Out--
+		ID_CONTROL_VECTOR_OUT(0),
+		ID_CONTROL_VECTOR_OUT(1),
+		ID_CONTROL_VECTOR_OUT(2),
+		ID_CONTROL_VECTOR_OUT(3),
+		ID_CONTROL_VECTOR_OUT(4),
+		ID_CONTROL_VECTOR_OUT(5),
+		ID_CONTROL_VECTOR_OUT(6),
+		ID_CONTROL_VECTOR_OUT(7),
+		ID_CONTROL_VECTOR_OUT(8),
+		ID_CONTROL_VECTOR_OUT(9),
 		--Outputs--
-		ID_PC_OUT,
-		ID_SIGN_EXTENDED_OUT,
-		ID_REG_OUT1,
-		ID_REG_OUT2
+		ID_DATA_OUT(132 downto 128),
+		ID_DATA_OUT(127 downto 96),
+		ID_DATA_OUT(95 downto 64),
+		ID_DATA_OUT(63 downto 32),
+		ID_DATA_OUT(31 downto 0)
 	);
 
 	EX_ST : EX_STAGE port map(
