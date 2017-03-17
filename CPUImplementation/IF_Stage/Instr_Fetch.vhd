@@ -89,13 +89,14 @@ process(CLOCK)
 
 begin
 
-if rising_edge(CLOCK) then
+if rising_edge(CLOCK) then	
+	PC_OUT <= PC_OUT_NEXT;
+
 	PC_OUT_NEXT <= PC_FEEDBACK;
 	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4 + 1;
 end if;
 
 end process;
 
-PC_OUT <= PC_OUT_NEXT;
 
 end architecture;
