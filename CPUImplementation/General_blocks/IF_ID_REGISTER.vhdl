@@ -9,9 +9,6 @@ entity IF_ID_REGISTER is
  
         PC_IN,
         INSTRUCTION_IN : in std_logic_vector(31 downto 0);
-        
-        REG_WRITE_IN: in std_logic_vector(4 downto 0);
-
         --Outputs--
         --Change as required--
         PC_OUT,

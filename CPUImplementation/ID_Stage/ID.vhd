@@ -28,6 +28,7 @@ entity ID is
         CONTROL_ALU_OP_OUT : out std_logic_vector(3 downto 0);
 
         ---Data Outputs---
+        INSTRUCTION_OUT : std_logic_vector(31 downto 0);
         WB_REG_OUT : out std_logic_vector(4 downto 0);
 
         PC_OUT : out std_logic_vector (31 downto 0);
@@ -148,7 +149,7 @@ architecture arch of ID is
                 CTRL_GET_LO,
                 CTRL_LINK
             );
-
+        INSTRUCTION_OUT <= INSTRUCTION;
         PC_OUT <= PC_IN;
 
 end arch;

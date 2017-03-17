@@ -10,7 +10,7 @@ entity ID_EX_REGISTER is
         CLOCK: in std_logic;
 
 	--CONTROL SIGNALS IN--
-	CONTROL_IN: in std_logic_vector(10 downto 0);
+	CONTROL_IN: in std_logic_vector(9 downto 0);
 --
         --PROGRAM COUNTER IN--
 	PC_IN,
