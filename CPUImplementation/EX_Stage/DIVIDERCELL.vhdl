@@ -7,9 +7,8 @@ entity DIVIDERCELL is
 
 port (
 	A,B: in std_logic_vector(31 downto 0);
-	--TODO: Check if we need to implement MFHI/MFLO
-	STATUS: out std_logic;
-	REMAINDER,QUOTIENT: out std_logic_vector(31 downto 0)
+	STATUS: out std_logic := '0';
+	REMAINDER,QUOTIENT: out std_logic_vector(31 downto 0) := (others => '0')
 	
 );
 
