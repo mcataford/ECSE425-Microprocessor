@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity extender is
+entity SIGNEXTENDER is
 
     port(
 
@@ -15,21 +15,17 @@ entity extender is
         EXTEND_OUT : out std_logic_vector (31 downto 0)
 
     );
-end extender;
+end SIGNEXTENDER;
 
-architecture arch of extender is
+architecture arch of SIGNEXTENDER is
+
+signal ones : std_logic_vector(15 downto 0):="1111111111111111";
+signal zeros : std_logic_vector(15 downto 0):="0000000000000000";
 
     begin
 
-    extend : process (EXTEND_IN)
-        begin  
-            if(EXTEND_IN(15)='1') then
-                EXTEND_OUT(31 downto 16) <= x"FFFF";
-                EXTEND_OUT(15 downto 0) <= EXTEND_IN;
-            elsif(EXTEND_IN(15) = '0') then
-                EXTEND_OUT(31 downto 16) <= x"0000";
-                EXTEND_OUT(15 downto 0) <= EXTEND_IN;
-            end if;
-    end process;
+    EXTEND_OUT<= zeros & EXTEND_IN when EXTEND_IN(15) = '0' else
+                 ones & EXTEND_IN when EXTEND_IN(15) = '1' else
+                 (others=>'0');
 
 end arch;
