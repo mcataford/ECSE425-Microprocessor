@@ -35,7 +35,9 @@ ARCHITECTURE rtl OF memory IS
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 
-      	file file_pointer : text is in "program.txt";
+      	file file_input : text;
+	file file_output : text;
+	
 
 
 BEGIN
@@ -46,6 +48,8 @@ BEGIN
       	variable line_num : line;
 	variable line_count : integer := 0;
 	variable INSTR_READ : std_logic_vector(31 downto 0);
+	variable INSTR_WRITE : string (32 downto 1);
+	variable MEM_LOOKUP : std_logic_vector(31 downto 0);
 	
 
 	BEGIN
@@ -56,8 +60,11 @@ BEGIN
 					ram_block(i) <= std_logic_vector(to_unsigned(0,32));
 				END LOOP;
 			else  
-      				while not endfile(file_pointer) loop
-      					readline (file_pointer,line_num);
+				file_open(file_input,file_in,READ_MODE); 
+
+      				while not endfile(file_input) loop
+					
+      					readline (file_input,line_num);
       					READ (line_num,line_content);
 			       	
 					for idx in 1 to 32 loop
@@ -75,8 +82,39 @@ BEGIN
 					line_count := line_count + 1;
 
 			      end loop;
+
+			      for idx in line_count to (ram_size/4)-1 loop
+
+					ram_block(idx) <= (others => '0');
+
+			      end loop;
+
+			      file_close(file_input);
 			end if;
 
+		elsif now >= sim_limit then
+
+			file_open(file_output, file_out, WRITE_MODE);
+
+			for mem_index in 0 to (ram_size / 4)-1 loop
+				
+				MEM_LOOKUP := ram_block(mem_index);
+
+				for idx in 1 to 32 loop
+					if MEM_LOOKUP(idx-1) = '1' then
+						INSTR_WRITE(idx) := '1';
+					else
+						INSTR_WRITE(idx) := '0';
+					end if;
+				end loop;
+
+				write(line_num, INSTR_WRITE);
+				writeline(file_output,line_num);
+
+			end loop;
+
+			file_close(file_output);
+			
 		end if;
 
 		--This is the actual synthesizable SRAM block
