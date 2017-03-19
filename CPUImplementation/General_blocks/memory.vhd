@@ -92,7 +92,7 @@ BEGIN
 			      file_close(file_input);
 			end if;
 
-		elsif now >= sim_limit then
+		elsif now >= sim_limit  and to_file then
 
 			file_open(file_output, file_out, WRITE_MODE);
 
