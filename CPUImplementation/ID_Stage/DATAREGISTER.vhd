@@ -42,8 +42,6 @@ architecture arch of DATAREGISTER is
 
     begin
 
-        --- Continuously sets $0 = 0x0000;
-        REG(0) <= "00000000000000000000000000000000";
 
         --- Decode addresses to integers
         rs <= to_integer(unsigned(READ_REG1));
@@ -59,6 +57,7 @@ architecture arch of DATAREGISTER is
         reg_op : process(CLOCK)
             begin
 
+            REG(0) <= "00000000000000000000000000000000";
             --Writing to register on the falling edge of clk--
             if(falling_edge(CLOCK) AND CONTROL_REG_WRITE = '1') then
                 REG(rd) <= WRITE_DATA;
@@ -66,15 +65,18 @@ architecture arch of DATAREGISTER is
 
             --Reading out of register on the risign edge of clk--
             if(rising_edge(CLOCK)) then
+                report "rising edge";
                 if(CONTROL_LINK = '1') then
                     REG(3) <= PC_IN;
                 end if;
                 if(CONTROL_GET_HI = '1') then
                     READ_DATA_OUT1 <= REG(0);
                     READ_DATA_OUT2 <= HI;
+                    report "hi";
                 elsif(CONTROL_GET_LO = '1') then
                     READ_DATA_OUT1 <= REG(0);
                     READ_DATA_OUT2 <= LO;
+                    report "lo";
                 else
                     READ_DATA_OUT1 <= REG(rs);
                     READ_DATA_OUT2 <= REG(rt);

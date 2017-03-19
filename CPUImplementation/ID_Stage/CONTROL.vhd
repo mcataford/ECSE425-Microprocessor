@@ -26,8 +26,8 @@ end CONTROL;
 architecture arch of CONTROL is
     signal output : std_logic_vector(6 downto 0);
     signal opOut : std_logic_vector(3 downto 0);
-    signal getHi : std_logic := '0';
-    signal getLo : std_logic := '0';
+    signal getHi : std_logic;
+    signal getLo : std_logic;
     signal controlLink : std_logic := '0';
     begin
         control_logic : process (INSTRUCTION_OP)
@@ -35,76 +35,78 @@ architecture arch of CONTROL is
                 getHi <= '0';
                 getLo <= '0';
                 controlLink <= '0';
+                output <= "0000000";
                 case INSTRUCTION_OP is
                     --R type--
                     when "000000" =>
-                        --ADD--
-                        if INSTRUCTION_FUNC = "000001" then
-                            output <= "1000001";
-                            opOut <= "0000";
-                        --SUB--
-                        elsif INSTRUCTION_FUNC = "100010" then
-                            output <= "1000001";
-                            opOut <= "0000";
-                        --Mult--
-                        elsif INSTRUCTION_FUNC = "011000" then
-                            output <= "1000001";
-                            opOut <= "0101";
-                        --DIV--
-                        elsif INSTRUCTION_FUNC = "011010" then
-                            output <= "1000001";
-                            opOut <= "0110";
-                        --SLT--
-                        elsif INSTRUCTION_FUNC = "101010" then
-                            output <= "1000001";
-                            opOut <= "0000";
-                        --AND--
-                        elsif INSTRUCTION_FUNC = "100100" then
-                            output <= "1000001";
-                            opOut <= "0001";
-                        --OR--
-                        elsif INSTRUCTION_FUNC = "100101" then
-                            output <= "1000001";
-                            opOut <= "0010";
-                        --NOR--
-                        elsif INSTRUCTION_FUNC = "100111" then
-                            output <= "1000001";
-                            opOut <= "0100";
-                        --XOR--
-                        elsif INSTRUCTION_FUNC = "100110" then
-                            output <= "1000001";
-                            opOut <= "0011";
-                        --MFHI--
-                        elsif INSTRUCTION_FUNC = "010000" then
-                            output <= "1000001";
-                            opOut <= "0000";
-                            getHi <= '1';
-                        --MFLO--
-                        elsif INSTRUCTION_FUNC = "010010" then
-                            output <= "1000001";
-                            opOut <= "0000";
-                            getLo <= '1';
-                        --SLL--
-                        elsif INSTRUCTION_FUNC = "000000" then
-                            output <= "1000001";
-                            opOut <= "0101";
-                        --SRL--
-                        elsif INSTRUCTION_FUNC = "000010" then
-                            output <= "1000001";
-                            opOut <= "0101";
-                        --SRA--
-                        elsif INSTRUCTION_FUNC = "000011" then
-                            output <= "1000001";
-                            opOut <= "0101";
-                       --JR--
-                        elsif INSTRUCTION_FUNC = "001000" then
-                            output <= "0100010";
-                            opOut <= "0000";
-                        else
-                            output <= "0000000";
-                            opOut <= "1111";
-                        end if;
-                        --R Type End--
+                        case INSTRUCTION_FUNC is
+                            --ADD--
+                            when "000001" =>
+                                output <= "1000001";
+                                opOut <= "0000";
+                            --SUB--
+                            when "100010" =>
+                                output <= "1000001";
+                                opOut <= "0000";
+                            --Mult--
+                            when "011000" =>
+                                output <= "1000001";
+                                opOut <= "0101";
+                            --DIV--
+                            when "011010" =>
+                                output <= "1000001";
+                                opOut <= "0110";
+                            --SLT--
+                            when "101010" =>
+                                output <= "1000001";
+                                opOut <= "0000";
+                            --AND--
+                            when "100100" =>
+                                output <= "1000001";
+                                opOut <= "0001";
+                            --OR--
+                            when "100101" =>
+                                output <= "1000001";
+                                opOut <= "0010";
+                            --NOR--
+                            when "100111" =>
+                                output <= "1000001";
+                                opOut <= "0100";
+                            --XOR--
+                            when "100110" =>
+                                output <= "1000001";
+                                opOut <= "0011";
+                            --MFHI--
+                            when "010000" =>
+                                output <= "1000001";
+                                opOut <= "0000";
+                                getHi <= '1';
+                            --MFLO--
+                            when "010010" =>
+                                output <= "1000001";
+                                opOut <= "0000";
+                                getLo <= '1';
+                            --SLL--
+                            when "000000" =>
+                                output <= "1000001";
+                                opOut <= "0101";
+                            --SRL--
+                            when "000010" =>
+                                output <= "1000001";
+                                opOut <= "0101";
+                            --SRA--
+                            when "000011" =>
+                                output <= "1000001";
+                                opOut <= "0101";
+                            --JR--
+                            when "001000" =>
+                                output <= "0100010";
+                                opOut <= "0000";
+                            when others =>
+                                output <= "0000000";
+                                opOut <= "1111";
+                    end case;
+                    --R Type End--
                 --ADDI--
                 when "001000" =>
                     output <= "0000011";
@@ -160,11 +162,11 @@ architecture arch of CONTROL is
                     opOut <= "1111";
                 end case;
 
-            CONTROL_JAL <= controlLink;
-            GET_HI <= getHi;
-            GET_LO <= getLo;
 
 
+
+        end process control_logic;
+        
             REG_DEST <= output(6);
             BRANCH <= output(5);
             MEM_READ <= output(4);
@@ -173,8 +175,9 @@ architecture arch of CONTROL is
             ALU_SRC <= output(1);
             REG_WRITE <= output(0);
             ALU_OP <= opOut;
-        end process control_logic;
 
-
+            CONTROL_JAL <= controlLink;
+            GET_HI <= getHi;
+            GET_LO <= getLo;
 
 end arch;
