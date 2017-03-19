@@ -10,7 +10,11 @@ ENTITY memory IS
 		ram_size : INTEGER := 32768;
 		mem_delay : time := 10 ns;
 		clock_period : time := 1 ns;
-		from_file : boolean := true
+		from_file : boolean := false;
+		file_in : string := "input.txt";
+		to_file : boolean := true;
+		file_out : string := "output.txt";
+		sim_limit : time := 10000 ns
 	);
 
 	PORT (
@@ -30,9 +34,20 @@ ARCHITECTURE rtl OF memory IS
 	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)/4-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
+
+      	file file_pointer : text is in "program.txt";
+
+
 BEGIN
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
+
+        variable line_content : string(32 downto 1);
+      	variable line_num : line;
+	variable line_count : integer := 0;
+	variable INSTR_READ : std_logic_vector(31 downto 0);
+	
+
 	BEGIN
 		--This is a cheap trick to initialize the SRAM in simulation
 		IF(now < 1 ps)THEN
@@ -40,9 +55,26 @@ BEGIN
 				For i in 0 to (ram_size/4)-1 LOOP
 					ram_block(i) <= std_logic_vector(to_unsigned(0,32));
 				END LOOP;
-			else
-				
+			else  
+      				while not endfile(file_pointer) loop
+      					readline (file_pointer,line_num);
+      					READ (line_num,line_content);
+			       	
+					for idx in 1 to 32 loop
 
+						if character'pos(line_content(idx)) = 49 then
+							INSTR_READ(idx-1) := '1';
+						else
+							INSTR_READ(idx-1) := '0';
+						end if;
+					end loop;	
+
+					
+					ram_block(line_count) <= INSTR_READ;	
+				
+					line_count := line_count + 1;
+
+			      end loop;
 			end if;
 
 		end if;
@@ -75,36 +107,5 @@ BEGIN
 		END IF;
 	END PROCESS;
 	waitrequest <= write_waitreq_reg and read_waitreq_reg;
-
-	--FILE IO reading the program into memory as needed.--
-	process
-      file file_pointer : text;
-        variable line_content : string(1 to 4);
-      variable line_num : line;
-        variable j : integer := 0;
-        variable char : character :='0';
-   begin
-        --Open the file read.txt from the specified location for reading(READ_MODE).
-      file_open(file_pointer,"C:\read.txt",READ_MODE);   
-      while not endfile(file_pointer) loop --till the end of file is reached continue.
-      readline (file_pointer,line_num);  --Read the whole line from the file
-        --Read the contents of the line from  the file into a variable.
-      READ (line_num,line_content);
-        --For each character in the line convert it to binary value.
-        --And then store it in a signal named 'bin_value'.
-        for j in 1 to 4 loop       
-            char := line_content(j);
-            if(char = '0') then
-               --
-            else
-               -- bin_value(4-j) <= '1';
-            end if;
-        end loop;  
-        wait for 10 ns; --after reading each line wait for 10ns.
-      end loop;
-      file_close(file_pointer);  --after reading all the lines close the file. 
-        wait;
-    end process;
-
 
 END rtl;
