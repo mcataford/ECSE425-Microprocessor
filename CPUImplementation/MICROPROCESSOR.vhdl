@@ -25,6 +25,13 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	signal ID_READ_OUT, ID_WRITE_REG : std_logic_vector(4 downto 0) := (others => '0');
 	signal ID_CONTROL_OUT : std_logic_vector(9 downto 0) := (others => '0');
 	
+	--Intermediate signals : EX STAGE--
+	
+	signal EX_CONTROL_IN: std_logic_vector(9 downto 0);
+	signal EX_PC_IN, EX_SIGN_IN, EX_REGA_IN, EX_REGB_IN, EX_INSTR_IN, EX_R32_OUT, EX_B_OUT, EX_INSTR_OUT: std_logic_vector(31 downto 0);
+	signal EX_R64_OUT : std_logic_vector(63 downto 0);
+	signal EX_SELA_IN,EX_SELB_IN,EX_BRANCH_OUT : std_logic := '0';
+	
 	component IF_STAGE
 
 		port(
@@ -85,6 +92,111 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	
 	end component;
 	
+	component ID_EX_REGISTER
+	 port(
+						--Inputs--
+						
+			--CLOCK SIGNAL--
+						CLOCK: in std_logic;
+
+			--CONTROL SIGNALS IN--
+			CONTROL_IN: in std_logic_vector(9 downto 0);
+		--
+						--PROGRAM COUNTER IN--
+			PC_IN,
+
+						--SIGN EXTENDER IN--
+			SIGN_EXTENDER_IN,
+
+						--REGISTER DATA IN--
+			REG_IN1,
+						REG_IN2 : in std_logic_vector(31 downto 0);
+			
+			--INSTRUCTION IN--
+			INSTR_IN: in std_logic_vector(31 downto 0);
+
+						--Outputs--
+						--CONTROL SIGNALS OUT--
+			CONTROL_OUT: out std_logic_vector(9 downto 0);
+
+			--PROGRAM COUNTER OUT--
+						PC_OUT,
+			
+			--SIGN EXTENDER OUT--
+						SIGN_EXTENDER_OUT,
+
+			--REGISTER DATA OUT--
+						REG_OUT1,
+						REG_OUT2 : out std_logic_vector(31 downto 0) := (others => '0');
+			
+			--INSTRUCTION OUT--
+			INSTR_OUT: out std_logic_vector(31 downto 0)
+
+    );
+	end component;
+	
+	component EX_STAGE
+	
+		port(
+			--INPUT--
+			--ALU operands
+			A,B,
+			--Immediate--
+			IMM,
+			--Instruction forward--
+			INSTR_IN,
+			--PC forward--
+			PC_IN: in std_logic_vector(31 downto 0);
+			--Control signal ALUOP--
+			ALU_CONTROL: in std_logic_vector(3 downto 0);
+			--Multiplexer control--
+			SELECTOR1, 
+			SELECTOR2: in std_logic;
+			--OUTPUT--
+			--Branch Taken--
+			BRANCH: out std_logic;
+			--ALU 32b out--
+			R,
+			--Operand B forward--
+			B_OUT,
+			--Instruction forward--
+			INSTR_OUT: out std_logic_vector(31 downto 0);
+			--ALU 64b out--
+			R_64: out std_logic_vector(63 downto 0)
+		);
+		
+	end component;
+	
+	component EX_MEM_REGISTER
+		port(
+		--INPUT--
+		--Clock signal--
+		CLOCK: in std_logic;
+		--Branch selection--
+		BRANCH_IN: in std_logic;
+		--ALU 32b out--
+		R_IN,
+		--Operand B forward--
+		B_FORWARD_IN,
+		--Instruction forward--
+		INSTR_IN: in std_logic_vector(31 downto 0);
+		--ALU 64b out--
+		R_64_IN: in std_logic_vector(63 downto 0);
+		--OUTPUT--
+		--Branch selection--
+		BRANCH_OUT: out std_logic := '0';
+		--ALU 32b out--
+		R_OUT,
+		--Operand B forward--
+		B_FORWARD_OUT,
+		--Instruction forward--
+		INSTR_OUT: out std_logic_vector(31 downto 0) := (others => '0');
+		--Alu 64b out--
+		R_64_OUT: out std_logic_vector(63 downto 0) := (others => '0')
+		
+	);
+	end component;
+	
 begin
 
 	--IF STAGE instantiation--
@@ -122,6 +234,43 @@ begin
 		ID_REGA_OUT,
 		ID_REGB_OUT
 	);
+	
+	ID_EX_REG : ID_EX_REGISTER port map(
+		CLOCK,
+		ID_CONTROL_OUT,
+		ID_PC_OUT,
+		ID_SIGN_OUT,
+		ID_REGA_OUT,
+		ID_REGB_OUT,
+		ID_INSTR_OUT,
+		EX_CONTROL_IN,
+		EX_PC_IN,
+		EX_SIGN_IN,
+		EX_REGA_IN,
+		EX_REGB_IN,
+		EX_INSTR_IN
+	);
+	
+	EX_ST : EX_STAGE port map(
+		EX_REGA_IN,
+		EX_REGB_IN,
+		EX_SIGN_IN,
+		EX_INSTR_IN,
+		EX_PC_IN,
+		EX_CONTROL_IN(9 downto 6),
+		EX_SELA_IN,
+		EX_SELB_IN,
+		EX_BRANCH_OUT,
+		EX_R32_OUT,
+		EX_B_OUT,
+		EX_INSTR_OUT,
+		EX_R64_OUT
+	);
+	
+	
+	
+	EX_SELA_IN <= '0';
+	EX_SELB_IN <= EX_CONTROL_IN(4);
 	
 	ID_WRITE_REG <= ID_INSTR_IN(15 downto 11);
 	
