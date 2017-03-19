@@ -64,19 +64,16 @@ architecture arch of DATAREGISTER is
             end if;
 
             --Reading out of register on the risign edge of clk--
-            if(rising_edge(CLOCK)) then
-                report "rising edge";
+            if rising_edge(CLOCK) then
                 if(CONTROL_LINK = '1') then
                     REG(3) <= PC_IN;
                 end if;
                 if(CONTROL_GET_HI = '1') then
                     READ_DATA_OUT1 <= REG(0);
                     READ_DATA_OUT2 <= HI;
-                    report "hi";
                 elsif(CONTROL_GET_LO = '1') then
                     READ_DATA_OUT1 <= REG(0);
                     READ_DATA_OUT2 <= LO;
-                    report "lo";
                 else
                     READ_DATA_OUT1 <= REG(rs);
                     READ_DATA_OUT2 <= REG(rt);
