@@ -27,7 +27,7 @@ entity ID_EX_REGISTER is
 
         --Outputs--
        	--CONTROL SIGNALS OUT--
-	CONTROL_OUT: out std_logic_vector(10 downto 0);
+	CONTROL_OUT: out std_logic_vector(9 downto 0);
 
 	--PROGRAM COUNTER OUT--
         PC_OUT,
@@ -49,7 +49,7 @@ end ID_EX_REGISTER;
 
 architecture ID_EX_REGISTER_Impl of ID_EX_REGISTER is
 
-signal CONTROL_MEM: std_logic_vector(10 downto 0);
+signal CONTROL_MEM: std_logic_vector(9 downto 0);
 signal PC_MEM,SIGN_MEM,REG1_MEM,REG2_MEM,INSTR_MEM: std_logic_vector(31 downto 0) := (others => '0');
 
 begin
