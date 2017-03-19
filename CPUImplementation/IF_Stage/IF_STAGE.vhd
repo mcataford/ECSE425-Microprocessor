@@ -74,7 +74,11 @@ component memory is
 	ram_size : INTEGER := 32768;
 	mem_delay : time := 1 ns;
 	clock_period : time := 1 ns;
-	from_file : boolean := true
+	from_file : boolean := true;		
+	file_in : string := "program.txt";
+	to_file : boolean := false;
+	file_out : string := "output.txt";
+	sim_limit : time := 10000 ns
 );
 	PORT (
 	clock: IN STD_LOGIC;
