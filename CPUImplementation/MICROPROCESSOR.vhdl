@@ -32,6 +32,12 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	signal EX_R64_OUT : std_logic_vector(63 downto 0);
 	signal EX_SELA_IN,EX_SELB_IN,EX_BRANCH_OUT : std_logic := '0';
 	
+	--Intermediate signals : MEM STAGE--
+	
+	signal MEM_B_IN, MEM_R32_IN, MEM_INSTR_IN: std_logic_vector(31 downto 0);
+	signal MEM_R64_IN: std_logic_vector(63 downto 0);
+	signal MEM_BRANCH_IN: std_logic;
+	
 	component IF_STAGE
 
 		port(
@@ -265,6 +271,20 @@ begin
 		EX_B_OUT,
 		EX_INSTR_OUT,
 		EX_R64_OUT
+	);
+	
+	EX_MEM_REG : EX_MEM_REGISTER port map(
+		CLOCK,
+		EX_BRANCH_OUT,
+		EX_R32_OUT,
+		EX_B_OUT,
+		EX_INSTR_OUT,
+		EX_R64_OUT,
+		MEM_BRANCH_IN,
+		MEM_R32_IN,
+		MEM_B_IN,
+		MEM_INSTR_IN,
+		MEM_R64_IN
 	);
 	
 	
