@@ -19,7 +19,11 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 
 	--Intermediate signals : ID STAGE--
 	
-	signal ID_PC_IN, ID_INSTR_IN: std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_CONTROL_REG_WRITE : std_logic := '0';
+	signal ID_PC_IN, ID_INSTR_IN, ID_WRITE_DATA,ID_INSTR_OUT,ID_PC_OUT,ID_SIGN_OUT,ID_REGA_OUT, ID_REGB_OUT: std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_WRITE_HILO : std_logic_vector(63 downto 0) := (others => '0');
+	signal ID_READ_OUT, ID_WRITE_REG : std_logic_vector(4 downto 0) := (others => '0');
+	signal ID_CONTROL_OUT : std_logic_vector(9 downto 0) := (others => '0');
 	
 	component IF_STAGE
 
@@ -56,6 +60,31 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 		
 	end component;
 	
+	component ID
+	
+	    port(
+        ---Inputs---
+        CLOCK : in std_logic;
+        INSTRUCTION_IN : in std_logic_vector (31 downto 0);
+        PC_IN : in std_logic_vector (31 downto 0);
+        WRITE_REG : std_logic_vector (4 downto 0);
+        WRITE_DATA : in std_logic_vector (31 downto 0);
+        WRITE_HILO : in std_logic_vector(63 downto 0);
+        --Control Signals In--
+        CONTROL_REG_WRITE_IN : in std_logic;
+        ---Control Signals Out---
+        CONTROL_VECTOR : out std_logic_vector(9 downto 0);
+        ---Data Outputs---
+        INSTRUCTION_OUT : out std_logic_vector(31 downto 0);
+        PC_OUT : out std_logic_vector (31 downto 0);
+        RD_OUT : out std_logic_vector(4 downto 0);
+        SIGN_EXTENDED_OUT : out std_logic_vector (31 downto 0);
+        REG_OUT1 : out std_logic_vector (31 downto 0);
+        REG_OUT2 : out std_logic_vector (31 downto 0)
+    );
+	
+	end component;
+	
 begin
 
 	--IF STAGE instantiation--
@@ -75,6 +104,23 @@ begin
 		IF_INSTR_OUT,
 		ID_PC_IN,
 		ID_INSTR_IN
+	);
+	
+	ID_ST : ID port map(
+		CLOCK,
+		ID_INSTR_IN,
+		ID_PC_IN,
+		ID_WRITE_REG,
+		ID_WRITE_DATA,
+		ID_WRITE_HILO,
+		ID_CONTROL_REG_WRITE,
+		ID_CONTROL_OUT,
+		ID_INSTR_OUT,
+		ID_PC_OUT,
+		ID_READ_OUT,
+		ID_SIGN_OUT,
+		ID_REGA_OUT,
+		ID_REGB_OUT
 	);
 	
 	
