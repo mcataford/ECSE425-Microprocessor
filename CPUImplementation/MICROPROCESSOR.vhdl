@@ -123,6 +123,8 @@ begin
 		ID_REGB_OUT
 	);
 	
+	ID_WRITE_REG <= ID_INSTR_IN(15 downto 11);
+	
 	
 
 end architecture;
