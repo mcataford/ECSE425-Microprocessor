@@ -29,6 +29,8 @@ signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto
 signal INSTR_ADDR: integer := 0;
 signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
+constant pc_limit : integer := 32768/4;
+
 --Components--
 
 component WORDFULLADDER 
@@ -76,7 +78,7 @@ component memory is
 	clock_period : time := 1 ns;
 	from_file : boolean := true;		
 	file_in : string := "program.txt";
-	to_file : boolean := false;
+	to_file : boolean := true;
 	file_out : string := "output.txt";
 	sim_limit : time := 10000 ns
 );
@@ -110,10 +112,12 @@ process(CLOCK)
 begin
 
 if rising_edge(CLOCK) then	
-	PC_OUT <= PC_OUT_NEXT;
+	if to_integer(unsigned(PC_CURRENT)) < pc_limit then
+		PC_OUT <= PC_OUT_NEXT;
 
-	PC_OUT_NEXT <= PC_FEEDBACK;
-	INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+		PC_OUT_NEXT <= PC_FEEDBACK;
+		INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+	end if;
 end if;
 
 end process;
