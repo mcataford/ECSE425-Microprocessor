@@ -78,7 +78,7 @@ component memory is
 	clock_period : time := 1 ns;
 	from_file : boolean := true;		
 	file_in : string := "program.txt";
-	to_file : boolean := true;
+	to_file : boolean := false;
 	file_out : string := "output.txt";
 	sim_limit : time := 10000 ns
 );
