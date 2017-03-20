@@ -5,13 +5,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity WB_STAGE is
-port( 
-	--Inputs
-	MUX_SELECT: in std_logic; --Selector for the multiplexer
-	READ_DATA, FORWARD_DATA: in std_logic_vector(31 downto 0); --Data from memory instruction
-	--Outputs
-	WRITE_DATA: out std_logic_vector(31 downto 0)	-- Outputs either data from fetch or memory instructions
-);
+	port( 
+		--Inputs
+		MUX_SELECT: in std_logic; --Selector for the multiplexer
+		READ_DATA, FORWARD_DATA: in std_logic_vector(31 downto 0); --Data from memory instruction
+		--Outputs
+		WRITE_DATA: out std_logic_vector(31 downto 0)	-- Outputs either data from fetch or memory instructions
+	);
 end entity;
 
 architecture WB_STAGE_Impl of WB_STAGE is 

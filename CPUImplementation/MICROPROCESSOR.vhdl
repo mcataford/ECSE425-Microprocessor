@@ -39,10 +39,12 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	signal MEM_BRANCH_IN: std_logic;
 	signal MEM_DATA_OUT, MEM_INSTR_OUT, MEM_B_OUT: std_logic_vector(31 downto 0);
 	signal MEM_CONTROL : std_logic_vector(1 downto 0) := (others => '0');
+	signal MEM_CONTROL_IN : std_logic_vector(9 downto 0);
 	
 	--Intermediate signals : WB STAGE--
-	signal WB_DATA_IN,WB_INSTR_IN,WB_B_IN: std_logic_vector(31 downto 0);
-	signal WB_R64_IN: std_logic_vector(63 downto 0);
+	signal WB_DATA_IN,WB_INSTR_IN,WB_B_IN,WB_OUT: std_logic_vector(31 downto 0);
+	signal WB_R64_IN: std_logic_vector(63 downto 0);	
+	signal WB_CONTROL_OUT: std_logic_vector(9 downto 0);
 	
 	component IF_STAGE
 
@@ -204,7 +206,9 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 		--Instruction forward--
 		INSTR_OUT: out std_logic_vector(31 downto 0) := (others => '0');
 		--Alu 64b out--
-		R_64_OUT: out std_logic_vector(63 downto 0) := (others => '0')
+		R_64_OUT: out std_logic_vector(63 downto 0) := (others => '0');
+		CONTROL_IN: in std_logic_vector(9 downto 0);
+		CONTROL_OUT: out std_logic_vector(9 downto 0)
 		
 	);
 	end component;
@@ -238,8 +242,23 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 			DATA_IN, INSTR_IN, B_FORWARD_IN : in std_logic_vector(31 downto 0);
 			DATA_OUT, INSTR_OUT, B_FORWARD_OUT : out std_logic_vector(31 downto 0);
 			DATA64_IN: in std_logic_vector(63 downto 0);
-			DATA64_out: out std_logic_vector(63 downto 0)
+			DATA64_OUT: out std_logic_vector(63 downto 0);
+			CONTROL_IN: in std_logic_vector(9 downto 0);
+			CONTROL_OUT: out std_logic_vector(9 downto 0)
 		);
+	
+	end component;
+	
+	component WB_STAGE
+	
+		port( 
+			--Inputs
+			MUX_SELECT: in std_logic; --Selector for the multiplexer
+			READ_DATA, FORWARD_DATA: in std_logic_vector(31 downto 0); --Data from memory instruction
+			--Outputs
+			WRITE_DATA: out std_logic_vector(31 downto 0)	-- Outputs either data from fetch or memory instructions
+		);
+
 	
 	end component;
 	
@@ -268,9 +287,9 @@ begin
 		CLOCK,
 		ID_INSTR_IN,
 		ID_PC_IN,
-		ID_WRITE_REG,
-		ID_WRITE_DATA,
-		ID_WRITE_HILO,
+		WB_INSTR_IN(25 downto 21),
+		WB_OUT,
+		WB_R64_IN,
 		ID_CONTROL_REG_WRITE,
 		ID_CONTROL_OUT,
 		ID_INSTR_OUT,
@@ -324,7 +343,9 @@ begin
 		MEM_R32_IN,
 		MEM_B_IN,
 		MEM_INSTR_IN, 
-		MEM_R64_IN
+		MEM_R64_IN,
+		EX_CONTROL_IN,
+		MEM_CONTROL_IN
 	);
 	
 	MEM_ST : MEM_STAGE port map(
@@ -347,7 +368,16 @@ begin
 		WB_INSTR_IN,
 		WB_B_IN,
 		MEM_R64_IN,
-		WB_R64_IN
+		WB_R64_IN,
+		MEM_CONTROL_IN,
+		WB_CONTROL_OUT
+	);
+	
+	WB_ST : WB_STAGE port map(
+		WB_CONTROL_OUT(3),
+		WB_DATA_IN,
+		WB_B_IN,
+		WB_OUT
 	);
 	
 	
