@@ -40,6 +40,10 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	signal MEM_DATA_OUT, MEM_INSTR_OUT, MEM_B_OUT: std_logic_vector(31 downto 0);
 	signal MEM_CONTROL : std_logic_vector(1 downto 0) := (others => '0');
 	
+	--Intermediate signals : WB STAGE--
+	signal WB_DATA_IN,WB_INSTR_IN,WB_B_IN: std_logic_vector(31 downto 0);
+	signal WB_R64_IN: std_logic_vector(63 downto 0);
+	
 	component IF_STAGE
 
 		port(
@@ -227,6 +231,18 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 		);
 	end component;
 	
+	component MEM_WB_REGISTER
+	
+		port (
+			CLOCK: in std_logic;
+			DATA_IN, INSTR_IN, B_FORWARD_IN : in std_logic_vector(31 downto 0);
+			DATA_OUT, INSTR_OUT, B_FORWARD_OUT : out std_logic_vector(31 downto 0);
+			DATA64_IN: in std_logic_vector(63 downto 0);
+			DATA64_out: out std_logic_vector(63 downto 0)
+		);
+	
+	end component;
+	
 begin
 
 	--IF STAGE instantiation--
@@ -322,6 +338,17 @@ begin
 		MEM_INSTR_OUT
 	);
 	
+	MEM_WB_REG : MEM_WB_REGISTER port map(
+		CLOCK,
+		MEM_DATA_OUT,
+		MEM_INSTR_OUT,
+		MEM_B_OUT,
+		WB_DATA_IN,
+		WB_INSTR_IN,
+		WB_B_IN,
+		MEM_R64_IN,
+		WB_R64_IN
+	);
 	
 	
 	EX_SELA_IN <= '0';
