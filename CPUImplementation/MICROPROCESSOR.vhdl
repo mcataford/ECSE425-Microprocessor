@@ -37,6 +37,8 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	signal MEM_B_IN, MEM_R32_IN, MEM_INSTR_IN: std_logic_vector(31 downto 0);
 	signal MEM_R64_IN: std_logic_vector(63 downto 0);
 	signal MEM_BRANCH_IN: std_logic;
+	signal MEM_DATA_OUT, MEM_INSTR_OUT, MEM_B_OUT: std_logic_vector(31 downto 0);
+	signal MEM_CONTROL : std_logic_vector(1 downto 0) := (others => '0');
 	
 	component IF_STAGE
 
@@ -203,6 +205,28 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	);
 	end component;
 	
+	component MEM_STAGE
+		port (
+			--INPUT--
+			--Clock signal--
+			CLOCK: in std_logic;
+			--Data to register--
+			DATA_IN,
+			--Write addr.
+			DATA_ADDR,
+			--Instruction in--
+			INSTR_IN : in std_logic_vector(31 downto 0);
+			MEM_CONTROL: in std_logic_vector(1 downto 0);
+			--OUTPUT--
+			--Data output--
+			DATA_OUT,
+			--Data forward--
+			DATA_FORWARD_OUT,
+			--Instruction forward--
+			INSTR_OUT : out std_logic_vector(31 downto 0)
+		);
+	end component;
+	
 begin
 
 	--IF STAGE instantiation--
@@ -285,6 +309,17 @@ begin
 		MEM_B_IN,
 		MEM_INSTR_IN,
 		MEM_R64_IN
+	);
+	
+	MEM_ST : MEM_STAGE port map(
+		CLOCK,
+		MEM_R32_IN,
+		MEM_B_IN,
+		MEM_INSTR_IN,
+		MEM_CONTROL,
+		MEM_DATA_OUT,
+		MEM_B_OUT,
+		MEM_INSTR_OUT
 	);
 	
 	
