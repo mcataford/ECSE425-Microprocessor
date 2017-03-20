@@ -307,7 +307,7 @@ begin
 		MEM_BRANCH_IN,
 		MEM_R32_IN,
 		MEM_B_IN,
-		MEM_INSTR_IN,
+		MEM_INSTR_IN, 
 		MEM_R64_IN
 	);
 	
