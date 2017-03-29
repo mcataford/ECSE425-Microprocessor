@@ -113,9 +113,8 @@ begin
 
 if rising_edge(CLOCK) then	
 	if to_integer(unsigned(PC_CURRENT)) < pc_limit then
-		PC_OUT <= PC_OUT_NEXT;
+		PC_OUT <= PC_FEEDBACK;
 
-		PC_OUT_NEXT <= PC_FEEDBACK;
 		INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
 	end if;
 end if;

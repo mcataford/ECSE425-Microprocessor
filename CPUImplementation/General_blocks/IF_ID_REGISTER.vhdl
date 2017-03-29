@@ -20,20 +20,20 @@ architecture arch of IF_ID_REGISTER is
 
     signal PC_MEM, INSTR_MEM: std_logic_vector(31 downto 0) := (others => '0');
 
-    begin
+begin
 
         process(CLOCK)
 	
-	begin
+				begin
 
-            if rising_edge(CLOCK) then
-                INSTR_OUT <= INSTR_MEM;
-		PC_OUT <= PC_MEM;
-	
-		PC_MEM <= PC_IN;
-		INSTR_MEM <= INSTR_IN;
+					if rising_edge(CLOCK) then
+							INSTR_OUT <= INSTR_IN;
+							PC_OUT <= PC_IN;
 
-            end if;
-	end process;
+							--PC_MEM <= PC_IN;
+							--INSTR_MEM <= INSTR_IN;
+
+					end if;
+				end process;
 
 end arch;
