@@ -29,13 +29,13 @@ ENTITY memory IS
 END memory;
 
 ARCHITECTURE rtl OF memory IS
-	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
+	TYPE MEM IS ARRAY((ram_size/4)-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
 	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)/4-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 
-      	file file_input : text;
+  file file_input : text;
 	file file_output : text;
 	
 
@@ -44,12 +44,12 @@ BEGIN
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
 
-        variable line_content : string(32 downto 1);
-      	variable line_num : line;
-	variable line_count : integer := 0;
-	variable INSTR_READ : std_logic_vector(31 downto 0);
-	variable INSTR_WRITE : string (32 downto 1);
-	variable MEM_LOOKUP : std_logic_vector(31 downto 0);
+		variable line_content : string(32 downto 1);
+		variable line_num : line;
+		variable line_count : integer := 0;
+		variable INSTR_READ : std_logic_vector(31 downto 0);
+		variable INSTR_WRITE : string (32 downto 1);
+		variable MEM_LOOKUP : std_logic_vector(31 downto 0);
 	
 
 	BEGIN
