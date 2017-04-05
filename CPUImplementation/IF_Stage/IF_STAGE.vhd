@@ -98,30 +98,30 @@ end component;
 --Port maps--
 begin
 
---Word-width full adder--
-WFA : WORDFULLADDER port map(PC_CURRENT, std_logic_vector(to_unsigned(4,32)), PC_INCR, WFA_Cout);
---Program counter accumulator register--
-PC_REG : PC_Register port map(CLOCK, '0', '1', PC_FEEDBACK, PC_CURRENT);
+	--Word-width full adder--
+	WFA : WORDFULLADDER port map(PC_CURRENT, std_logic_vector(to_unsigned(4,32)), PC_INCR, WFA_Cout);
+	--Program counter accumulator register--
+	PC_REG : PC_Register port map(CLOCK, '0', '1', PC_FEEDBACK, PC_CURRENT);
 
---Multiplexer--
-MX : MUX port map(PC_INCR, ALU_PC, PC_SRC, PC_FEEDBACK);
+	--Multiplexer--
+	MX : MUX port map(PC_INCR, ALU_PC, PC_SRC, PC_FEEDBACK);
 
---Instruction memory--
-INSTR_MEM : memory port map(CLOCK, std_logic_vector(to_unsigned(0,32)), INSTR_ADDR, '0', '1', INSTR, WAIT_REQ);
+	--Instruction memory--
+	INSTR_MEM : memory port map(CLOCK, std_logic_vector(to_unsigned(0,32)), INSTR_ADDR, '0', '1', INSTR, WAIT_REQ);
 
-process(CLOCK)
+	process(CLOCK)
 
-begin
+	begin
 
-if rising_edge(CLOCK) then	
-	if to_integer(unsigned(PC_CURRENT)) < pc_limit then
-		PC_OUT <= PC_FEEDBACK;
-		INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
-		
-	end if;
-end if;
+		if rising_edge(CLOCK) then	
 
-end process;
+			if to_integer(unsigned(PC_CURRENT)) < pc_limit then
+				PC_OUT <= PC_FEEDBACK;
+				INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+			end if;
+			
+		end if;
 
+	end process;
 
 end architecture;
