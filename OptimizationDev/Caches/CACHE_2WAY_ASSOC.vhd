@@ -39,10 +39,10 @@ architecture arch of cache is
 type state_type is (ENTRY,DECODE,HIT,MISS);
 
 --- Cache array
---- Cache array location: || 2 Flags: Dirty/Valid | 20 Tag | 128 Data ||
+--- Cache array location: || 2 Flags: Dirty/Valid | 20 Tag | 32 Data ||
 --- 32 blocks leads to array size
 --- 152 bits per location in cache array = 2 bits dirty/valid + 20 bits of tag + 128 bits of data
-type MEM is array (1023 downto 0) of STD_LOGIC_VECTOR(151 downto 0);
+type MEM is array (4096 downto 0) of STD_LOGIC_VECTOR(54 downto 0);
 signal CACHE0 : MEM := (others=>(others=>'0'));
 signal CACHE1 : MEM := (others=>(others=>'1'));
 
@@ -52,23 +52,22 @@ signal next_state: state_type := ENTRY;
 
 
 signal TAG : STD_LOGIC_VECTOR (19 downto 0);
-signal INDEX : STD_LOGIC_VECTOR (9 downto 0);
-signal OFFSET : STD_LOGIC_VECTOR (1 downto 0);
+signal INDEX : STD_LOGIC_VECTOR (11 downto 0);
 signal WRITEDATA : STD_LOGIC_VECTOR(31 downto 0);
 
-signal ROW0 : STD_LOGIC_VECTOR(151 downto 0);
+signal ROW0 : STD_LOGIC_VECTOR(53 downto 0);
 signal TAG0 : STD_LOGIC_VECTOR(19 downto 0);
 signal VALID0 : STD_LOGIC;
 signal DIRTY0 : STD_LOGIC;
 
-signal ROW1 : STD_LOGIC_VECTOR(151 downto 0);
+signal ROW1 : STD_LOGIC_VECTOR(53 downto 0);
 signal TAG1 : STD_LOGIC_VECTOR(19 downto 0);
 signal VALID1 : STD_LOGIC;
 signal DIRTY1 : STD_LOGIC;
 
 signal CACHE_EVICT : STD_LOGIC;
 signal CACHE_CONTROL : STD_LOGIC;
-signal HIT_ROW : STD_LOGIC_VECTOR(151 downto 0);
+signal HIT_ROW : STD_LOGIC_VECTOR(53 downto 0);
 
 
 begin
@@ -76,12 +75,9 @@ begin
 -- State behavioural handling process, synchronized with current state changes.
 state_behaviour : process(clock)
 
-variable TAG_TOP : INTEGER := 149;
-variable TAG_BOTTOM : INTEGER := 130;
+variable TAG_TOP : INTEGER := 51;
+variable TAG_BOTTOM : INTEGER := 32;
 
-
-variable WR_placemark : INTEGER range 0 to 16;
-variable RD_placemark : INTEGER range 0 to 16;
 begin
 if rising_edge(clock) then
 	--Next state becomes current state.
@@ -113,18 +109,17 @@ if rising_edge(clock) then
 
 			--- Decoding inputs and putting them in signals	
 			TAG <= s_addr(31 downto 12);
-			INDEX <= s_addr(11 downto 2);
-			OFFSET <= s_addr(1 downto 0);
+			INDEX <= s_addr(11 downto 0);
 			WRITEDATA <= s_writedata;
 			--Determine if hit/miss
 			ROW0 <= CACHE0(to_integer(unsigned(INDEX)));
 			ROW1 <= CACHE1(to_integer(unsigned(INDEX)));
 			TAG0 <= ROW0(TAG_TOP downto TAG_BOTTOM);
 			TAG1 <= ROW1(TAG_TOP downto TAG_BOTTOM);
-			VALID0 <= ROW0(151);
-			VALID1 <= ROW1(151);
-			DIRTY0 <= ROW0(150);
-			DIRTY1 <= ROW1(150);
+			VALID0 <= ROW0(53);
+			VALID1 <= ROW1(53);
+			DIRTY0 <= ROW0(52);
+			DIRTY1 <= ROW1(52);
 
 			-- If cache 0 has a hit set its hit variable
 			if(TAG0 = TAG AND VALID0 = '1') then
@@ -145,44 +140,23 @@ if rising_edge(clock) then
 			-- The CPU requested a write to the cache. Must determine if hit or miss
 		when HIT =>
             		if(s_write = '0' and s_read = '1') then
-                		case OFFSET is
-                    			when "00" =>
-                	        		s_readdata <= HIT_ROW(31 downto 0);
-                	    		when "01" =>
-                	        		s_readdata <= HIT_ROW(63 downto 32);
-                	    		when "10" =>
-                	        		s_readdata <= HIT_ROW(95 downto 64);
-                	    		when "11" =>
-                	        		s_readdata <= HIT_ROW(127 downto 96);
-                	    		when others =>
-                	        		s_readdata <= "00000000000000000000000000000000";
-                		end case;
+                	    s_readdata <= HIT_ROW(31 downto 0);
             		elsif(s_write = '1' and s_read = '0') then
-                		case OFFSET is
-                		    when "00" =>
-               			         HIT_ROW(31 downto 0) <= s_writedata;
-               			     when "01" =>
-               			         HIT_ROW(63 downto 32) <= s_writedata;
-               			     when "10" =>
-               			         HIT_ROW(95 downto 64) <= s_writedata;
-               			     when "11" =>
-               			         HIT_ROW(127 downto 96) <= s_writedata;
-               			     when others =>
-               			         HIT_ROW(31 downto 0) <= "00000000000000000000000000000000";
-               			 end case;
+                		
+						HIT_ROW(31 downto 0) <= s_writedata;
                		 	--Set valid and dirty bits
-               			HIT_ROW(151) <= '1'; --Valid
-                		HIT_ROW(150) <= '1'; --Dirty
+               			HIT_ROW(53) <= '1'; --Valid
+                		HIT_ROW(52) <= '1'; --Dirty
 
                 		--Return the row to the correct cache
                 		case CACHE_CONTROL is
-					when '0' =>
-						CACHE0(to_integer(unsigned(INDEX))) <= HIT_ROW;
-					when '1' =>
-                		        	CACHE1(to_integer(unsigned(INDEX))) <= HIT_ROW;
-					when others =>
+							when '0' =>
+								CACHE0(to_integer(unsigned(INDEX))) <= HIT_ROW;
+							when '1' =>
+											CACHE1(to_integer(unsigned(INDEX))) <= HIT_ROW;
+							when others =>
 
-                		end case;
+						end case;
             		end if;
 
             		next_state <= ENTRY;
@@ -196,58 +170,46 @@ if rising_edge(clock) then
 					when '0' =>
 						--Write into memory only if Valid and Dirty
 						if(VALID0 = '1' AND DIRTY0 = '1') then
-							while (WR_PLACEMARK<16) loop
-								m_write <= '1';
-								m_read <= '0';
-								m_writedata <= ROW0(WR_PLACEMARK*8+7 downto WR_PLACEMARK*8);
-								while (m_waitrequest > '0') loop
+							m_write <= '1';
+							m_read <= '0';
+							m_writedata <= ROW0(31 downto 0);
+							while (m_waitrequest > '0') loop
 								
-								end loop;
-								m_write <= '0';
-								WR_PLACEMARK := WR_PLACEMARK + 1;
-							end loop;								
-						end if;
-						ROW0(151) <= '1'; --Valid
-						--Read out of Memory
-						while(RD_PLACEMARK<16) loop
-							m_read <= '1';
-							m_write <= '0';
-							ROW0(RD_PLACEMARK*8+7 downto RD_PLACEMARK*8)<=m_readdata;
-							while(m_waitrequest>'0') loop
-			
 							end loop;
-							m_read <='0';
-							RD_PLACEMARK := RD_PLACEMARK + 1;
+							m_write <= '0';
+						end if;
+						ROW0(53) <= '1'; --Valid
+						--Read out of Memory
+						m_read <= '1';
+						m_write <= '0';
+						ROW0(31 downto 0) <= m_readdata;
+						while(m_waitrequest>'0') loop
+			
 						end loop;
+						m_read <='0';
 						CACHE0(to_integer(unsigned(INDEX))) <= ROW0;
 						next_state <= HIT;
 
 					when '1' =>
 						--Write into memory only if Valid and Dirty
 						if(VALID1 = '1' AND DIRTY1 = '1') then
-							while (WR_PLACEMARK<16) loop
-								m_write <= '1';
-								m_read <= '0';
-								m_writedata <= ROW1(WR_PLACEMARK*8+7 downto WR_PLACEMARK*8);
-								while (m_waitrequest > '0') loop
-								
-								end loop;
-								m_write <= '0';
-								WR_PLACEMARK := WR_PLACEMARK + 1;
-							end loop;								
-						end if;
-						ROW1(151) <= '1'; --Valid
-						--Read out of Memory
-						while(RD_PLACEMARK<16) loop
-							m_read <= '1';
-							m_write <= '0';
-							ROW1(RD_PLACEMARK*8+7 downto RD_PLACEMARK*8)<=m_readdata;
-							while(m_waitrequest>'0') loop
-			
+							m_write <= '1';
+							m_read <= '0';
+							m_writedata <= ROW1(31 downto 0);
+							while (m_waitrequest > '0') loop
+							
 							end loop;
-							m_read <='0';
-							RD_PLACEMARK := RD_PLACEMARK + 1;
+							m_write <= '0';
+						end if;
+						ROW1(53) <= '1'; --Valid
+						--Read out of Memory
+						m_read <= '1';
+						m_write <= '0';
+						ROW1(31 downto 0) <= m_readdata;
+						while(m_waitrequest>'0') loop
+		
 						end loop;
+						m_read <='0';
 						CACHE1(to_integer(unsigned(INDEX))) <= ROW1;
 						next_state <= HIT;
 					when others=>
