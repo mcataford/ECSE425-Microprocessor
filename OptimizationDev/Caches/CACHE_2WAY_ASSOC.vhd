@@ -116,31 +116,31 @@ if rising_edge(clock) then
 			INDEX <= s_addr(11 downto 2);
 			OFFSET <= s_addr(1 downto 0);
 			WRITEDATA <= s_writedata;
-            		--Determine if hit/miss
-            		ROW0 <= CACHE0(to_integer(unsigned(INDEX)));
-            		ROW1 <= CACHE1(to_integer(unsigned(INDEX)));
-            		TAG0 <= ROW0(TAG_TOP downto TAG_BOTTOM);
-            		TAG1 <= ROW1(TAG_TOP downto TAG_BOTTOM);
-            		VALID0 <= ROW0(151);
-            		VALID1 <= ROW1(151);
-            		DIRTY0 <= ROW0(150);
-            		DIRTY1 <= ROW1(150);
+			--Determine if hit/miss
+			ROW0 <= CACHE0(to_integer(unsigned(INDEX)));
+			ROW1 <= CACHE1(to_integer(unsigned(INDEX)));
+			TAG0 <= ROW0(TAG_TOP downto TAG_BOTTOM);
+			TAG1 <= ROW1(TAG_TOP downto TAG_BOTTOM);
+			VALID0 <= ROW0(151);
+			VALID1 <= ROW1(151);
+			DIRTY0 <= ROW0(150);
+			DIRTY1 <= ROW1(150);
 
-            		-- If cache 0 has a hit set its hit variable
-            		if(TAG0 = TAG AND VALID0 = '1') then
-                		CACHE_CONTROL <= '0';
-                		HIT_ROW <= ROW0;
-                		next_state <= HIT;
-            		-- Else if cache 1 has a hit set its hit variable
-            		elsif(TAG1 = TAG AND VALID1 = '1') then
-                		CACHE_CONTROL <= '1';
-                		HIT_ROW <= ROW1;
-                		next_state <= HIT;
-            		-- If neither those, then its a miss
-            		else
-                		CACHE_EVICT <= ((NOT VALID1) OR (VALID0 AND DIRTY0));
-                		next_state <= MISS;
-            		end if;
+			-- If cache 0 has a hit set its hit variable
+			if(TAG0 = TAG AND VALID0 = '1') then
+				CACHE_CONTROL <= '0';
+				HIT_ROW <= ROW0;
+				next_state <= HIT;
+			-- Else if cache 1 has a hit set its hit variable
+			elsif(TAG1 = TAG AND VALID1 = '1') then
+				CACHE_CONTROL <= '1';
+				HIT_ROW <= ROW1;
+				next_state <= HIT;
+			-- If neither those, then its a miss
+			else
+				CACHE_EVICT <= ((NOT VALID1) OR (VALID0 AND DIRTY0));
+				next_state <= MISS;
+			end if;
 
 			-- The CPU requested a write to the cache. Must determine if hit or miss
 		when HIT =>
@@ -191,44 +191,68 @@ if rising_edge(clock) then
 			-- The CPU requested a write and the item it wanted to write to was in the cache.
 		when MISS =>
 			
-            		m_addr <= to_integer(unsigned(s_addr));
-            		if(CACHE_EVICT = '0') then
-            		    HIT_ROW <= ROW0;
-            		elsif(CACHE_EVICT = '1') then
-            		    HIT_ROW <= ROW1;
-            		end if;
+				m_addr <= to_integer(unsigned(s_addr));
+				case CACHE_EVICT is
+					when '0' =>
+						--Write into memory only if Valid and Dirty
+						if(VALID0 = '1' AND DIRTY0 = '1') then
+							while (WR_PLACEMARK<16) loop
+								m_write <= '1';
+								m_read <= '0';
+								m_writedata <= ROW0(WR_PLACEMARK*8+7 downto WR_PLACEMARK*8);
+								while (m_waitrequest > '0') loop
+								
+								end loop;
+								m_write <= '0';
+								WR_PLACEMARK := WR_PLACEMARK + 1;
+							end loop;								
+						end if;
+						ROW0(151) <= '1'; --Valid
+						--Read out of Memory
+						while(RD_PLACEMARK<16) loop
+							m_read <= '1';
+							m_write <= '0';
+							ROW0(RD_PLACEMARK*8+7 downto RD_PLACEMARK*8)<=m_readdata;
+							while(m_waitrequest>'0') loop
+			
+							end loop;
+							m_read <='0';
+							RD_PLACEMARK := RD_PLACEMARK + 1;
+						end loop;
+						CACHE0(to_integer(unsigned(INDEX))) <= ROW0;
+						next_state <= HIT;
 
-            		while (WR_PLACEMARK<16) loop
-            		    m_write <= '1';
-            		    m_read <= '0';
-            		    m_writedata <= HIT_ROW(WR_PLACEMARK*8+7 downto WR_PLACEMARK*8);
-            		    while m_waitrequest > '0' loop
-            		    
-            		    end loop;
-            		    m_write <= '0';
-            		    WR_PLACEMARK := WR_PLACEMARK + 1;
-            		end loop;
-		
-            		while(RD_PLACEMARK<16) loop
-            		    m_read <= '1';
-            		    m_write <= '0';
-            		    HIT_ROW(RD_PLACEMARK*8+7 downto RD_PLACEMARK*8)<=m_readdata;
-            		    while(m_waitrequest>'0') loop
-		
-            		    end loop;
-            		    m_read <='0';
-            		    RD_PLACEMARK := RD_PLACEMARK + 1;
-            		end loop;
-
-            		--Set valid and dirty bits
-            		HIT_ROW(151) <= '1'; --Valid
-            		HIT_ROW(150) <= '1'; --Dirty
-
-            		if(CACHE_EVICT = '0') then
-            		    CACHE0(to_integer(unsigned(INDEX))) <= HIT_ROW;
-            		elsif(CACHE_EVICT = '1') then
-            		    CACHE1(to_integer(unsigned(INDEX))) <= HIT_ROW;
-            		end if;
+					when '1' =>
+						--Write into memory only if Valid and Dirty
+						if(VALID1 = '1' AND DIRTY1 = '1') then
+							while (WR_PLACEMARK<16) loop
+								m_write <= '1';
+								m_read <= '0';
+								m_writedata <= ROW1(WR_PLACEMARK*8+7 downto WR_PLACEMARK*8);
+								while (m_waitrequest > '0') loop
+								
+								end loop;
+								m_write <= '0';
+								WR_PLACEMARK := WR_PLACEMARK + 1;
+							end loop;								
+						end if;
+						ROW1(151) <= '1'; --Valid
+						--Read out of Memory
+						while(RD_PLACEMARK<16) loop
+							m_read <= '1';
+							m_write <= '0';
+							ROW1(RD_PLACEMARK*8+7 downto RD_PLACEMARK*8)<=m_readdata;
+							while(m_waitrequest>'0') loop
+			
+							end loop;
+							m_read <='0';
+							RD_PLACEMARK := RD_PLACEMARK + 1;
+						end loop;
+						CACHE1(to_integer(unsigned(INDEX))) <= ROW1;
+						next_state <= HIT;
+					when others=>
+						next_state <= ENTRY;
+				end case;
         	end case;
     	end if;
 end process state_behaviour;
