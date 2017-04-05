@@ -51,20 +51,20 @@ begin
 	
 		if rising_edge(CLOCK) then
 		
-			BRANCH_OUT <= BRANCH_MEM;
-			R_OUT <= R_MEM;
-			B_FORWARD_OUT <= B_FORWARD_MEM;
-			INSTR_OUT <= INSTR_MEM;
-			R_64_OUT <= R_64_MEM;
-			CONTROL_OUT <= CONTROL_MEM;
+			BRANCH_OUT <= BRANCH_IN;
+			R_OUT <= R_IN;
+			B_FORWARD_OUT <= B_FORWARD_IN;
+			INSTR_OUT <= INSTR_IN;
+			R_64_OUT <= R_64_IN;
+			CONTROL_OUT <= CONTROL_IN;
 			
 
-			BRANCH_MEM <= BRANCH_IN;
-			R_MEM <= R_IN;
-			B_FORWARD_MEM <= B_FORWARD_IN;
-			INSTR_MEM <= INSTR_IN;
-			R_64_MEM <= R_64_IN;
-			CONTROL_MEM <= CONTROL_IN;
+			-- BRANCH_MEM <= BRANCH_IN;
+			-- R_MEM <= R_IN;
+			-- B_FORWARD_MEM <= B_FORWARD_IN;
+			-- INSTR_MEM <= INSTR_IN;
+			-- R_64_MEM <= R_64_IN;
+			-- CONTROL_MEM <= CONTROL_IN;
 
 		end if;
 
