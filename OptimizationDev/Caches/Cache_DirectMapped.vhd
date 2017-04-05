@@ -32,9 +32,9 @@ architecture arch of Cache_DirectMapped is
 -- State definitions
 -- ENTRY: If there is an incoming request for something in the cache, the entry state will forward that request to the decode state. Has additional responsibility of setting some control bits.
 -- DECODE: This state decodes the address, setting internal signals like C_INDEX and C_TAG for internal manipulation. This state will also forward to the appropriate state in terms of reading or writing.
--- CACHE_WRITE: A write to the cache has been requested. Determines if there is a hit or a miss and directs to next appropriate state.
+-- HIT_MISS: This verifies if the given data hits or miss. If it hits, it can read or write in the cache. Otherwise, the valid and dirty bits have to be verified.
+-- VALID_DIRTY: This verifies the valid and dirty bits. If both valid and dirty bits are set high, then memory has to be accessed. Otherwise, the cache can be used.
 -- CACHE_WRITE_HIT: This writes to a cache item that was found to match the incoming address. Upon completion, de-asserts the s_waitrequest flag and returns to ENTRY state.
--- CACHE_READ: A read to the cache has been requested. Determines if there is a hit or a miss and directs to the next appropriate state.
 -- CACHE_READ_HIT: This reads a cache item that was found to match the incoming address. Upon completion, de-asserts the s_waitrequest flag and returns to ENTRY state.
 -- MEMORY_EVICT: This evicts an item from the cache to memory in the case that an address from the CPU did not find what it wanted to in the cache. That item must be evicted in place of another item from memory.
 -- MEMORY_READ: This reads an item from the memory to cache. Depending on control signals mem_read and mem_write, the next state may either be CACHE_WRITE_HIT or CACHE_READ_HIT as the item that was missed for
@@ -42,7 +42,16 @@ architecture arch of Cache_DirectMapped is
 -- MEMORY_WAIT: This is a wait state which continues to write to or read from the memory. As memory is slower, this state implements a busy wait scheme until all items are read or all items are written, returning
 --		to the calling state when done.
 
-type state_type is (ENTRY,DECODE,CACHE_WRITE,CACHE_WRITE_HIT,CACHE_READ,CACHE_READ_HIT,MEMORY_EVICT,MEMORY_READ,MEMORY_WAIT);
+type state_type is 
+(ENTRY,
+DECODE,
+HIT_MISS,
+VALID_DIRTY,
+CACHE_WRITE_HIT,
+CACHE_READ_HIT,
+MEMORY_EVICT,
+MEMORY_READ,
+MEMORY_WAIT);
 
 --- Cache array
 --- Cache array location: || 2 Flags: Dirty/Valid | 25 Tag | 128 Data ||
@@ -87,7 +96,7 @@ if rising_edge(clock) then
 
 	-- Branch to behavioural segment based on current state signal.
 	case current_state is
-
+---------------------------------------------
 		-- Entry state - Waiting on CPU request
 		when ENTRY =>
 			report "DEBUG: S=ENTRY";
@@ -108,7 +117,7 @@ if rising_edge(clock) then
 				next_state <= DECODE;
 			end if;
 			
-		
+---------------------------------------------	
 		-- Decode s_addr contents and proceed to the next appropriate state
 		when DECODE =>
 			report "DEBUG: S=DECODE";
@@ -120,45 +129,64 @@ if rising_edge(clock) then
 			C_TAG <= s_addr(14 downto 7);
 			C_INDEX <= s_addr(6 downto 2);
 			C_OFFSET <= s_addr(1 downto 0);
-			
-			-- If the CPU wants to read something from the cache...
-			if (s_read = '1' AND s_write = '0') then
-				C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
-				next_state <= CACHE_READ;
-
-			-- If the CPU wants to write something to the cache...
-			elsif (s_read = '0' AND s_write = '1') then
-				next_state <= CACHE_WRITE;
-
-			-- Something went wrong... Return to ENTRY
-			else
-				s_waitrequest <='0';
-			 	next_state <= ENTRY;
-			end if;
 		
-		-- The CPU requested a write to the cache. Must determine if hit or miss
-		when CACHE_WRITE =>
-			report "DEBUG: S=CACHE_WRITE";
-			
-			-- Find index in cache and compare tags. First load the cache row into C_ROW
+		  --- Move to the next state
+			next_state <= HIT_MISS;
+		
+---------------------------------------------	
+		-- Verify if the given data is a hit or a miss.
+		when HIT_MISS =>
+		  report "DEBUG: S=HIT_MISS";
+		  
+		  -- Find index in cache and compare tags. First load the cache row into C_ROW
 			C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
 			
 			-- Compare cache's tag with the tag from s_addr. If match, there's a hit.
 			if (C_ROW(135 downto 128) = C_TAG) then
-				next_state <= CACHE_WRITE_HIT;
+			  --Read the given data
+			  if(s_read = '1' AND s_write = '0') then
+				  next_state <= CACHE_READ_HIT;
+				--Write the given data
+				elsif(s_read = '0' AND s_write = '1') then
+				  next_state <= CACHE_WRITE_HIT;
+				-- Something went wrong... Return to ENTRY
+		    else
+				  s_waitrequest <='0';
+			 	  next_state <= ENTRY;
+			 	end if;
 
-			-- If not match, there's a miss. Set various control signals and proceed to MEMORY_EVICT which evicts cache item to memory.
-			elsif ((C_ROW(135 downto 128) /= C_TAG) AND (C_ROW(137) = '1')) then
-				WR_placemark := 0;
-				RD_placemark := 0;
-				next_state <= MEMORY_EVICT;
-
-			-- We want to write into something not in the cache but the thing currently in its location isn't dirty so doesnt need to be written to memory
-			else
-				RD_placemark :=0;
-				next_state <= MEMORY_READ;
+			-- If no match, there's a miss.
+			elsif ((C_ROW(135 downto 128) /= C_TAG)) then
+				next_state <= VALID_DIRTY;
 			end if;
-
+		  
+---------------------------------------------
+		--Verify the valid and dirty bits
+		when VALID_DIRTY =>
+		  report "DEBUG: S=VALID_DIRTY";
+		  
+		  -- Go to memory if both valid and dirty bits are '1'
+		  if ((C_ROW(137) = '1') AND (C_ROW(136) = '1')) then
+		    WR_placemark := 0;
+				RD_placemark := 0;
+		    next_state <= MEMORY_EVICT;
+		   
+		  -- Otherwise read or write accordingly
+		  else
+		    --Read the given data
+			  if(s_read = '1' AND s_write = '0') then
+				  next_state <= CACHE_READ_HIT;
+				--Write the given data
+				elsif(s_read = '0' AND s_write = '1') then
+				  next_state <= CACHE_WRITE_HIT;
+				-- Something went wrong... Return to ENTRY
+		    else
+				  s_waitrequest <='0';
+			 	  next_state <= ENTRY;
+			 	end if;
+			end if;
+			
+---------------------------------------------
 		-- The CPU requested a write and the item it wanted to write to was in the cache.
 		when CACHE_WRITE_HIT =>
 			report "DEBUG: S=CACHE_WRITE_HIT";
@@ -189,31 +217,8 @@ if rising_edge(clock) then
 			s_waitrequest <= '0';
 			---Go back to ENTRY
 			next_state <= ENTRY;
-			
-		-- The CPU requested a reach from the cache. Must determine if hit or miss.
-		when CACHE_READ =>
-			report "DEBUG: S=CACHE_READ";
-
-		  	-- Find index in cache and compare tags
-			--C_ROW <= CACHE(to_integer(unsigned(C_INDEX)));
-
-			-- If the tag in s_addr and the tag in the cache match there's a cache hit. Also, only read if valid bit is set.
-			if ((C_ROW(135 downto 128) = C_TAG) AND (C_ROW(136) = '1')) then
-				next_state <= CACHE_READ_HIT;
-
-			-- If the tags do not match and the valid bit is set, proceed to evict the item addressed by s_addr to memory 
-			elsif ((C_ROW(135 downto 128) /= C_TAG) AND (C_ROW(136) = '1')) then
-			  	WR_placemark := 0;
-				RD_placemark := 0;
-			  	mem_read <= '1';
-				next_state <= MEMORY_EVICT;
-
-			-- Valid bit was not set so we can't read anything from cache but we also dont need to send anything back to memory
-			else
-				RD_placemark := 0;
-				next_state <= MEMORY_READ;
-			end if;
-			
+	
+---------------------------------------------		
 		when CACHE_READ_HIT =>
 			report "DEBUG: S=CACHE_READ_HIT";
 		  ---Depending on the input address' offset, the proper 32 bit word block gets read from the cache
@@ -238,7 +243,7 @@ if rising_edge(clock) then
 		    		next_state <= ENTRY;
 		  	end if;
 
-		
+---------------------------------------------
 		when MEMORY_EVICT =>
 			report "DEBUG: S=MEMORY_EVICT";
 		  --Writing back is done in 3 stages using the Avalon interface:
@@ -273,7 +278,8 @@ if rising_edge(clock) then
 			mem_read <= '1';
 			m_addr <= to_integer(unsigned(s_addr));
 			next_state <= MEMORY_READ;
-
+			
+---------------------------------------------
 		when MEMORY_READ =>
 			report "DEBUG: S=MEMORY_READ";
 		  ---Must read data from memory, since it was not found in the cache
@@ -281,8 +287,6 @@ if rising_edge(clock) then
 			--while RD_placemark < 16 loop
 			--	next_state <= MEMORY_WAIT;
 			--end loop;
-
-			
 
 			if RD_placemark < 16 then
 				m_read <= '1';
@@ -314,6 +318,7 @@ if rising_edge(clock) then
 		  	end if;
 			end if;
 
+---------------------------------------------
 		when MEMORY_WAIT =>
 			report "DEBUG: S=MEMORY_WAIT";
 			--We are waiting until the memory has completed an operation, so we loop "forever"
