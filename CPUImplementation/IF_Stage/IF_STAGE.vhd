@@ -29,6 +29,8 @@ signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto
 signal INSTR_ADDR: integer := 0;
 signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
+signal INSTR_FETCHED: std_logic_vector(31 downto 0);
+
 constant pc_limit : integer := 32768/4;
 
 --Components--
@@ -114,8 +116,8 @@ begin
 if rising_edge(CLOCK) then	
 	if to_integer(unsigned(PC_CURRENT)) < pc_limit then
 		PC_OUT <= PC_FEEDBACK;
-
 		INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+		
 	end if;
 end if;
 

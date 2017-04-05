@@ -33,7 +33,7 @@ end DATAREGISTER;
 architecture arch of DATAREGISTER is
 
     type MEM is array (31 downto 0) of std_logic_vector(31 downto 0);
-    signal REG : MEM:=(others=>"00000000000000000000000000000000");
+    signal REG : MEM:=(others=>"00000000000000000000000000000001");
     signal HI, LO : std_logic_vector(31 downto 0);
     signal rs, rt, rd : integer;
 
