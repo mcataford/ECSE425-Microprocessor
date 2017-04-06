@@ -28,7 +28,7 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
 	--Intermediate signals : EX STAGE--
 	
 	signal EX_CONTROL_IN: std_logic_vector(9 downto 0);
-	signal EX_PC_IN, EX_SIGN_IN, EX_REGA_IN, EX_REGB_IN, EX_INSTR_IN, EX_R32_OUT, EX_B_OUT, EX_INSTR_OUT: std_logic_vector(31 downto 0);
+	signal EX_PC_IN, EX_SIGN_IN, EX_REGA_IN, EX_REGB_IN, EX_INSTR_IN, EX_R32_OUT, EX_B_OUT, EX_INSTR_OUT: std_logic_vector(31 downto 0) := (others => '0');
 	signal EX_R64_OUT : std_logic_vector(63 downto 0);
 	signal EX_SELA_IN,EX_SELB_IN,EX_BRANCH_OUT : std_logic := '0';
 	

@@ -76,7 +76,7 @@ end component PC_Register;
 component memory is
 	GENERIC(
 	ram_size : INTEGER := 32768;
-	mem_delay : time := 0 ns;
+	mem_delay : time := 1 ns;
 	clock_period : time := 1 ns;
 	from_file : boolean := true;		
 	file_in : string := "program.txt";

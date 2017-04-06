@@ -95,7 +95,7 @@ MC: MULTIPLIERCELL port map(A,B,MC_OUTPUT);
 DC: DIVIDERCELL port map(A,B,DC_STATUS,DC_QUOTIENT,DC_REMAINDER);
 
 --Logic cell component instance
-LC: LOGICCELL port map(A, B, LC_MODE, LC_OUTPUT);
+LC: LOGICCELL port map(A,B,LC_MODE,LC_OUTPUT);
 
 LC_MODE <= "00" when ALU_CONTROL = "0001" else
 	"01" when ALU_CONTROL = "0010" else
