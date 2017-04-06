@@ -25,11 +25,12 @@ architecture IF_STAGE_Impl of IF_STAGE is
 
 --Intermediate signals--
 
-signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0');
-signal INSTR_ADDR: integer := 10;
+signal PC_CURRENT, PC_INCR, PC_FEEDBACK: std_logic_vector(31 downto 0) := (others => '0');
+signal INSTR_ADDR: integer := 0;
 signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
-signal INSTR_FETCHED: std_logic_vector(31 downto 0);
+signal INSTR_FETCHED: std_logic_vector(31 downto 0) := (others => 'U');
+signal PC_NEXT: std_logic_vector(31 downto 0) := (others => '0');
 
 constant pc_limit : integer := 32768/4;
 
@@ -95,20 +96,50 @@ component memory is
 );
 end component;
 
---Port maps--
 begin
 
+	--Component instantiation--
+
 	--Word-width full adder--
-	WFA : WORDFULLADDER port map(PC_CURRENT, std_logic_vector(to_unsigned(4,32)), PC_INCR, WFA_Cout);
+	WFA : WORDFULLADDER port map(
+		PC_CURRENT, 
+		std_logic_vector(to_unsigned(4,32)), 
+		PC_INCR, 
+		WFA_Cout
+	);
+	
 	--Program counter accumulator register--
-	PC_REG : PC_Register port map(CLOCK, '0', '1', PC_FEEDBACK, PC_CURRENT);
+	PC_REG : PC_Register port map(
+		CLOCK, 
+		'0', 
+		'1', 
+		PC_FEEDBACK, 
+		PC_CURRENT
+	);
 
 	--Multiplexer--
-	MX : MUX port map(PC_INCR, ALU_PC, PC_SRC, PC_FEEDBACK);
+	MX : MUX port map(
+		PC_INCR, 
+		ALU_PC, 
+		PC_SRC, 
+		PC_NEXT
+	);
 
 	--Instruction memory--
-	INSTR_MEM : memory port map(CLOCK, std_logic_vector(to_unsigned(0,32)), INSTR_ADDR, '0', '1', INSTR, WAIT_REQ);
+	INSTR_MEM : memory port map(
+		CLOCK, 
+		std_logic_vector(to_unsigned(0,32)), 
+		INSTR_ADDR, 
+		'0', 
+		'1', 
+		INSTR_FETCHED, 
+		WAIT_REQ
+	);
+	
+	--Sequential logic
 
+	--Address feed to the instruction memory.
+	
 	process(CLOCK)
 
 	begin
@@ -116,12 +147,28 @@ begin
 		if rising_edge(CLOCK) then	
 
 			if to_integer(unsigned(PC_CURRENT)) < pc_limit then
-				PC_OUT <= PC_FEEDBACK;
 				INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+				
+				report "IF: New instr. addr. generated.";
+				
 			end if;
 			
 		end if;
 
 	end process;
+	
+	--Output updates, synchronized
+	
+	process(INSTR_FETCHED)
+	
+	begin
+	
+		report "IF: Stage output refresh.";
+	
+		PC_OUT <= PC_NEXT;
+		PC_FEEDBACK <= PC_NEXT;
+		INSTR <= INSTR_FETCHED;
+	
+	end process;
 
-end architecture;
+end architecture; 
