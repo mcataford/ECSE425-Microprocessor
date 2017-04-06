@@ -30,7 +30,9 @@ END memory;
 
 ARCHITECTURE rtl OF memory IS
 	TYPE MEM IS ARRAY((ram_size/4)-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
-	SIGNAL ram_block: MEM := (others => (others => '0'));
+	
+	SIGNAL ram_block: MEM;
+	
 	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)/4-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
@@ -51,17 +53,19 @@ BEGIN
 		variable line_count : integer := 0;
 		variable INSTR_WRITE : string (32 downto 1);
 		variable MEM_LOOKUP : std_logic_vector(31 downto 0);
-		variable INSTR_READ : std_logic_vector(31 downto 0) := (others => '1');
+		variable INSTR_READ : std_logic_vector(31 downto 0);
 
 	BEGIN
 		
 		--Memory initialization
 		
-		IF(now < 1 ps and not initialized)THEN
+		IF(now < 1 ps and not initialized) THEN
 			if not from_file then
 				For i in 0 to (ram_size/4)-1 LOOP
 					ram_block(i) <= std_logic_vector(to_unsigned(0,32));
+					
 				END LOOP;
+				
 				
 				report "Memory initialized at ZERO";
 				
@@ -79,14 +83,14 @@ BEGIN
 					for idx in 32 downto 1 loop 
 
 						if character'pos(line_content(idx)) = 49 then
-							ram_block(line_count)(idx-1) <= '1';
+							INSTR_READ(idx-1) := '1';
 						else
-							ram_block(line_count)(idx-1) <= '0';
+							INSTR_READ(idx-1) := '0';
 						end if;
 						
 					end loop;	
 					
-					report integer'image(to_integer(unsigned(ram_block(line_count))));
+					ram_block(line_count) <= INSTR_READ;
 					
 					line_count := line_count + 1;
 
@@ -113,7 +117,7 @@ BEGIN
 
 		--Memory dump at end of simulation
 		
-		if now >= sim_limit  and to_file then
+		if now >= sim_limit and to_file then
 
 			file_open(file_output, file_out, WRITE_MODE);
 
@@ -141,7 +145,7 @@ BEGIN
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
-				ram_block(address) <= writedata;
+				--ram_block(address) <= writedata;
 			END IF;
 		read_address_reg <= address;
 		END IF;
