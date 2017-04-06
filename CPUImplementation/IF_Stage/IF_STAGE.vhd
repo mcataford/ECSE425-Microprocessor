@@ -26,7 +26,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 --Intermediate signals--
 
 signal PC_CURRENT, PC_INCR, PC_FEEDBACK, PC_OUT_NEXT: std_logic_vector(31 downto 0) := (others => '0');
-signal INSTR_ADDR: integer := 0;
+signal INSTR_ADDR: integer := 10;
 signal WAIT_REQ, WFA_Cout: std_logic := '0';
 
 signal INSTR_FETCHED: std_logic_vector(31 downto 0);
@@ -76,13 +76,13 @@ end component PC_Register;
 component memory is
 	GENERIC(
 	ram_size : INTEGER := 32768;
-	mem_delay : time := 1 ns;
+	mem_delay : time := 0 ns;
 	clock_period : time := 1 ns;
 	from_file : boolean := true;		
 	file_in : string := "program.txt";
 	to_file : boolean := false;
 	file_out : string := "output.txt";
-	sim_limit : time := 10000 ns
+	sim_limit : time := 10 ns
 );
 	PORT (
 	clock: IN STD_LOGIC;
@@ -118,6 +118,7 @@ begin
 			if to_integer(unsigned(PC_CURRENT)) < pc_limit then
 				PC_OUT <= PC_FEEDBACK;
 				INSTR_ADDR <= to_integer(unsigned(PC_CURRENT)) / 4;
+				report "Tick.";
 			end if;
 			
 		end if;

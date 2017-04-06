@@ -30,11 +30,13 @@ END memory;
 
 ARCHITECTURE rtl OF memory IS
 	TYPE MEM IS ARRAY((ram_size/4)-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
-	SIGNAL ram_block: MEM;
+	SIGNAL ram_block: MEM := (others => (others => '0'));
 	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)/4-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
-
+	
+	signal initialized: boolean := false;
+	
   file file_input : text;
 	file file_output : text;
 	
@@ -47,52 +49,71 @@ BEGIN
 		variable line_content : string(32 downto 1);
 		variable line_num : line;
 		variable line_count : integer := 0;
-		variable INSTR_READ : std_logic_vector(31 downto 0);
 		variable INSTR_WRITE : string (32 downto 1);
 		variable MEM_LOOKUP : std_logic_vector(31 downto 0);
-	
+		variable INSTR_READ : std_logic_vector(31 downto 0) := (others => '1');
 
 	BEGIN
-		--This is a cheap trick to initialize the SRAM in simulation
-		IF(now < 1 ps)THEN
+		
+		--Memory initialization
+		
+		IF(now < 1 ps and not initialized)THEN
 			if not from_file then
 				For i in 0 to (ram_size/4)-1 LOOP
 					ram_block(i) <= std_logic_vector(to_unsigned(0,32));
 				END LOOP;
+				
+				report "Memory initialized at ZERO";
+				
 			else  
+			
+				--Populating memory with the contents of the input file.
+			
 				file_open(file_input,file_in,READ_MODE); 
 
-      				while not endfile(file_input) loop
-					
-      					readline (file_input,line_num);
-      					READ (line_num,line_content);
-			       	
-					for idx in 1 to 32 loop
+				while not endfile(file_input) loop
+				
+					readline (file_input,line_num);
+					READ (line_num,line_content);
+						
+					for idx in 32 downto 1 loop 
 
 						if character'pos(line_content(idx)) = 49 then
-							INSTR_READ(idx-1) := '1';
+							ram_block(line_count)(idx-1) <= '1';
 						else
-							INSTR_READ(idx-1) := '0';
+							ram_block(line_count)(idx-1) <= '0';
 						end if;
+						
 					end loop;	
-
 					
-					ram_block(line_count) <= INSTR_READ;	
-				
+					report integer'image(to_integer(unsigned(ram_block(line_count))));
+					
 					line_count := line_count + 1;
 
-			      end loop;
+				end loop;
+					
+				file_close(file_input);
 
-			      for idx in line_count to (ram_size/4)-1 loop
+				--Populating unused memory with 0's.
+				
+				for idx in line_count to (ram_size/4)-1 loop
 
 					ram_block(idx) <= (others => '0');
 
-			      end loop;
+				end loop;
+				
+				report "memory initialized from FILE."; 
 
-			      file_close(file_input);
+			      
 			end if;
+			
+		initialized <= true;
+		
+		end if;
 
-		elsif now >= sim_limit  and to_file then
+		--Memory dump at end of simulation
+		
+		if now >= sim_limit  and to_file then
 
 			file_open(file_output, file_out, WRITE_MODE);
 
