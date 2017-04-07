@@ -63,7 +63,7 @@ begin
 			end if;
 		
 		--I or J type instruction
-		elsif uFUNCT = 0 then
+		else
 			
 			--There are only 2 J types: J and JAL
 			if uOPCODE = 2 or uOPCODE = 3 then
@@ -98,11 +98,6 @@ begin
 				end if;
 			
 			end if;
-			
-		
-		else
-		
-			report "CONTROL UNIT: Error, both OPCODE and FUNCT asserted.";
 		
 		end if;
 	
