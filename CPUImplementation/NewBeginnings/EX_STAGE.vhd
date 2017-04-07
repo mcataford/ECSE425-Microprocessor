@@ -63,6 +63,11 @@ begin
 		R2
 	);
 	
+	--ALU input multiplexers
+	--(1): ALUSrc
+	--(8): PCSrc
+	--See ID_CONTROL_UNIT.vhd for details
+	
 	OPERAND_A <= A when CONTROL_VECTOR(8) = '0' else
 						PC;
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else
