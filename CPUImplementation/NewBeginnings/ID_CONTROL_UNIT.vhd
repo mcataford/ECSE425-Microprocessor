@@ -16,7 +16,7 @@ entity ID_CONTROL_UNIT is
 		--Control signals
 		CONTROL_VECTOR: out std_logic_vector(7 downto 0);
 		--ALU control signals
-		ALU_CONTROL_VECTOR: out std_logic_vector(6 downto 0)
+		ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 	
 end entity;
