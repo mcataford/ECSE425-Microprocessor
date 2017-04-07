@@ -27,7 +27,7 @@ end entity;
 
 architecture EX_STAGE_Impl of EX_STAGE is
 
-	signal OPERAND_A, OPERAND_B: integer;
+	signal OPERAND_A, OPERAND_B: integer := 0;
 
 	component ALU
 		port(
