@@ -14,11 +14,11 @@ entity IF_STAGE is
 			--PC MUX select signal
 			PC_SEL: in std_logic;
 			--Feedback from ALU for PC calc.
-			ALU_PC: in integer range 0 to 1024;
+			ALU_PC: in integer range 0 to 1023;
 			
 			--OUTPUT
 			--PC output
-			PC_OUT: out integer range 0 to 1024;
+			PC_OUT: out integer range 0 to 1023;
 			--Fetched instruction
 			INSTR: out std_logic_vector(31 downto 0)
 		);
@@ -98,7 +98,7 @@ begin
 		MEM_STALL		
 	);
 	
-	stage_behaviour: process(CLOCK)
+	STAGE_BEHAVIOUR: process(CLOCK)
 	
 		variable INCREMENTED_PC: integer range 0 to PC_MAX-1;
 		variable DONE: boolean := false;
