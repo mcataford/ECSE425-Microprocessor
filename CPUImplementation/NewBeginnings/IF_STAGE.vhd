@@ -133,7 +133,7 @@ begin
 			INCREMENTED_PC := PC_REG + 1;
 			
 			--Feeding the current PC into the instr. memory to fetch.
-			IR_ADDR <= PC_REG;
+			IR_ADDR <= PC_REG ;
 			
 			--Multiplexer output to select PC output source.
 			if PC_SEL = '0' then
@@ -148,10 +148,21 @@ begin
 	
 	end process;
 	
-	--Setting the output signals.
-	PC_OUT <= PC_OUTPUT;
-	PC_REG <= PC_OUTPUT;
-	INSTR <= IR_OUT when INSTR_FEED = '1' else
-		(others => 'Z');
+	OUTPUT_UPDATE: process(IR_OUT, PC_OUTPUT)
+	
+	begin
+	
+		PC_OUT <= PC_OUTPUT;
+		PC_REG <= PC_OUTPUT;
+		
+		if INSTR_FEED = '1' then
+			INSTR <= IR_OUT;
+		else
+			INSTR <= (others => 'Z');
+		end if;
+	
+	end process;
+	
+
 
 end architecture;
