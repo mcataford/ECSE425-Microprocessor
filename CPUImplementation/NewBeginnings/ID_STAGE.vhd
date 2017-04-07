@@ -26,7 +26,7 @@ entity ID_STAGE is
 		--Sign-extended immediate
 		IMMEDIATE: out integer;
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(6 downto 0);
+		CONTROL_VECTOR: out std_logic_vector(7 downto 0);
 		--ALU control signals
 		ALU_CONTROL_VECTOR: out std_logic_vector(6 downto 0)
 	);
@@ -45,13 +45,47 @@ architecture ID_STAGE_Impl of ID_STAGE is
 	
 	--Instruction parsing
 	signal RS,RT,RD,SHAMT: std_logic_vector(4 downto 0);
-	signal OPCODE,FUNCT: std_logic_vector(5 downto )0;
+	signal OPCODE,FUNCT: std_logic_vector(5 downto 0);
 	signal IMM: std_logic_vector(15 downto 0);
 	signal ADDR: std_logic_vector(25 downto 0);
+	
+	--Subcomponent instantiation
+	
+	component ID_CONTROL_UNIT
+		
+		port (
+			--INPUT
+			--Opcode segment
+			OPCODE: in std_logic_vector(5 downto 0);
+			--Funct segment
+			FUNCT: in std_logic_vector(5 downto 0);
+			
+			--OUTPUT
+			--Control signals
+			CONTROL_VECTOR: out std_logic_vector(7 downto 0);
+			--ALU control signals
+			ALU_CONTROL_VECTOR: out std_logic_vector(6 downto 0)
+		);
+		
+	end component;
 
 begin
 
-	STAGE_BEHAVIOUR: process(PC)
+	CU: ID_CONTROL_UNIT port map(
+		--INPUT
+		--Opcode
+		OPCODE,
+		--Funct
+		FUNCT,
+		
+		--OUTPUT
+		--Control signals
+		CONTROL_VECTOR,
+		--ALU signals
+		ALU_CONTROL_VECTOR
+	);
+
+	STAGE_BEHAVIOUR: process(CLOCK)
 	
 	begin
 		
@@ -64,10 +98,6 @@ begin
 		FUNCT <= INSTR(5 downto 0);
 		IMM <= INSTR(15 downto 0);
 		ADDR <= INSTR(25 downto 0);
-		
-		
-		
-		
 	
 	end process;
 	
@@ -75,7 +105,7 @@ begin
 	
 	begin
 	
-		if now < 1ps then
+		if now < 1 ps then
 		
 			for idx in REG_COUNT_MAX-1 downto 0 loop
 			
