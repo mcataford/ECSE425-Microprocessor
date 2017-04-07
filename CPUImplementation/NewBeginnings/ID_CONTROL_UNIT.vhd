@@ -107,5 +107,7 @@ begin
 		end if;
 	
 	end process;
+	
+	CONTROL_VECTOR <= CONTROL;
 
 end architecture;
