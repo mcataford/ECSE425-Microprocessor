@@ -28,6 +28,8 @@ architecture ALU_Impl of ALU is
 begin
 
 	ALU_BEHAVIOUR: process(A,B)
+	
+		--Unsigned conversions and buffers.
 
 		variable uOP,uFU: unsigned(5 downto 0);
 		variable SHAMT: integer;
@@ -38,12 +40,16 @@ begin
 	
 	begin
 	
+		--Populating buffers and conversions.
+		
 		uOP := unsigned(INSTR(31 downto 26));
 		uFU := unsigned(INSTR(5 downto 0));
 		SHAMT := to_integer(unsigned(INSTR(10 downto 6)));
 		
 		uA := to_unsigned(A,32);
 		uB := to_unsigned(B, 32);
+		
+		--Processing instruction per OPCODE & FUNCT segments.
 		
 		--ADD, ADDI
 		if uOP = 8 or uFU = 32 then
