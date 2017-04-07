@@ -87,6 +87,12 @@ begin
 
 	STAGE_BEHAVIOUR: process(CLOCK)
 	
+		variable uOPCODE, uFUNCT: unsigned(5 downto 0);
+		
+		variable ZERO_EXT: std_logic_vector(15 downto 0) := (others => '0');
+		variable ONE_EXT: std_logic_vector(15 downto 0) := (others => '0');
+		
+	
 	begin
 		
 		--Parsing the instruction word.
@@ -98,8 +104,33 @@ begin
 		FUNCT <= INSTR(5 downto 0);
 		IMM <= INSTR(15 downto 0);
 		ADDR <= INSTR(25 downto 0);
+		
+		--Shortcuts for further processing
+		uOPCODE := unsigned(OPCODE);
+		uFUNCT := unsigned(FUNCT);
+		
+		--Sign-extending the immediate value
+		--Zero-extend any logical ops (ANDI, ORI, XORI)
+		if uOPCODE = 12 or uOPCODE = 13 or uOPCODE = 14 then
+			IMMEDIATE <= to_integer(unsigned(ZERO_EXT & IMM));
+			
+			report "ID: Zero extension.";
+			
+		--Sign-extend Arithmetic or memory accesses
+		elsif uOPCODE = 8 or uOPCODE = 10 or uOPCODE = 35 or uOPCODE = 43 then
+			IMMEDIATE <= to_integer(unsigned(ONE_EXT & IMM));
+			
+			report "ID: Sign extension.";
+			
+		else
+		
+			report "ID: Padding.";
+		
+		end if;
 	
 	end process;
+	
+	--Initialization of registers to 0.
 	
 	REGISTER_FILE_INIT: process
 	
