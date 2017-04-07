@@ -79,6 +79,10 @@ begin
 	
 	begin
 	
+		A <= 0;
+		B <= 0;
+		Imm <= 0;
+	
 		CONTROL_VECTOR <= (others => '0');
 	
 		wait for 1.5 * CLK_PERIOD;
