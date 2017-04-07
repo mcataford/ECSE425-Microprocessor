@@ -46,7 +46,10 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	signal PC_REG: integer range 0 to PC_MAX-1 := 0;
 	
 	--Program counter output.
-	signal PC_OUTPUT: integer range 0 to PC_MAX-1 := 0; 
+	signal PC_OUTPUT: integer range 0 to PC_MAX-1 := 0;
+	
+	--Memory read allow
+	signal INSTR_FEED: std_logic := '1';
 
 	--Subcomponent instantiation
 	
@@ -88,8 +91,8 @@ begin
 		IR_ADDR,
 		--Memory write perm. (DISABLED)
 		'0',
-		--Memory read perm. (ENABLED)
-		'1',
+		--Memory read perm.
+		INSTR_FEED,
 		
 		--OUTPUT
 		--Data out
@@ -109,6 +112,7 @@ begin
 		if RESET = '1' then
 			
 			PC_OUTPUT <= 0;
+			INSTR_FEED <= '0';
 			
 			report "IF: Program counter reset.";
 		
@@ -120,6 +124,8 @@ begin
 			report "IF: Reached end of program.";
 	
 		elsif rising_edge(CLOCK) and not DONE then
+		
+			INSTR_FEED <= '1';
 			
 			--Incrementing the PC to the next value.
 			INCREMENTED_PC := PC_REG + 1;
@@ -143,6 +149,7 @@ begin
 	--Setting the output signals.
 	PC_OUT <= PC_OUTPUT;
 	PC_REG <= PC_OUTPUT;
-	INSTR <= IR_OUT;
+	INSTR <= IR_OUT when INSTR_FEED = '1' else
+		(others => 'U');
 
 end architecture;
