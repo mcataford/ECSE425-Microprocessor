@@ -38,7 +38,7 @@ begin
 		
 		variable DWBUFFER: unsigned(63 downto 0);
 		
-		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'U');
+		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	begin
 	

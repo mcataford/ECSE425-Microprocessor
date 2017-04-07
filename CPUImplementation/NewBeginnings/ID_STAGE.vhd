@@ -85,7 +85,7 @@ begin
 		
 		variable ZERO_EXT: std_logic_vector(15 downto 0) := (others => '0');
 		variable ONE_EXT: std_logic_vector(15 downto 0) := (others => '0');
-		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'U');
+		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 		
 	
 	begin

@@ -105,6 +105,8 @@ begin
 	
 		variable INCREMENTED_PC: integer range 0 to PC_MAX-1;
 		variable DONE: boolean := false;
+		
+		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	begin
 	
@@ -117,7 +119,7 @@ begin
 			report "IF: Program counter reset.";
 		
 		--Detects the end of the program.
-		elsif now >= 1 ps and IR_OUT = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" and not DONE then
+		elsif now >= 1 ps and IR_OUT = UNDEF and not DONE then
 			
 			DONE := true;
 			
