@@ -27,7 +27,7 @@ architecture ALU_Impl of ALU is
 
 begin
 
-	ALU_BEHAVIOUR: process(A,B)
+	ALU_BEHAVIOUR: process(A,B,INSTR)
 	
 		--Unsigned conversions and buffers.
 
@@ -128,6 +128,8 @@ begin
 			end if;
 			
 		else
+		
+			--If the instruction is undefined, zero out the output.
 		
 			R1 <= 0;
 			R2 <= 0;
