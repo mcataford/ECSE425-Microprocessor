@@ -94,40 +94,46 @@ begin
 		
 	
 	begin
-		
-		--Parsing the instruction word.
-		OPCODE <= INSTR(31 downto 26);
-		RS <= INSTR(25 downto 21);
-		RT <= INSTR(20 downto 16);
-		RD <= INSTR(15 downto 11);
-		SHAMT <= INSTR(10 downto 6);
-		FUNCT <= INSTR(5 downto 0);
-		IMM <= INSTR(15 downto 0);
-		ADDR <= INSTR(25 downto 0);
-		
-		--Shortcuts for further processing
-		uOPCODE := unsigned(OPCODE);
-		uFUNCT := unsigned(FUNCT);
-		
-		--Sign-extending the immediate value
-		--Zero-extend any logical ops (ANDI, ORI, XORI)
-		if uOPCODE = 12 or uOPCODE = 13 or uOPCODE = 14 then
-			IMMEDIATE <= to_integer(unsigned(ZERO_EXT & IMM));
-			
-			report "ID: Zero extension.";
-			
-		--Sign-extend Arithmetic or memory accesses
-		elsif uOPCODE = 8 or uOPCODE = 10 or uOPCODE = 35 or uOPCODE = 43 then
-			IMMEDIATE <= to_integer(unsigned(ONE_EXT & IMM));
-			
-			report "ID: Sign extension.";
-			
-		else
-		
-			report "ID: Padding.";
-		
-		end if;
 	
+		if (rising_edge(CLOCK) or falling_edge(CLOCK)) and now >= 1 ps then
+			
+			--Parsing the instruction word.
+			
+			OPCODE <= INSTR(31 downto 26);
+			RS <= INSTR(25 downto 21);
+			RT <= INSTR(20 downto 16);
+			RD <= INSTR(15 downto 11);
+			SHAMT <= INSTR(10 downto 6);
+			FUNCT <= INSTR(5 downto 0);
+			IMM <= INSTR(15 downto 0);
+			ADDR <= INSTR(25 downto 0);
+			
+			--Shortcuts for further processing
+			uOPCODE := unsigned(OPCODE);
+			uFUNCT := unsigned(FUNCT);
+			
+			--Sign-extending the immediate value
+			
+			--Zero-extend any logical ops (ANDI, ORI, XORI)
+			if uOPCODE = 12 or uOPCODE = 13 or uOPCODE = 14 then
+				IMMEDIATE <= to_integer(unsigned(ZERO_EXT & IMM));
+				
+				report "ID: Zero extension.";
+				
+			--Sign-extend Arithmetic or memory accesses
+			elsif uOPCODE = 8 or uOPCODE = 10 or uOPCODE = 35 or uOPCODE = 43 then
+				IMMEDIATE <= to_integer(unsigned(ONE_EXT & IMM));
+				
+				report "ID: Sign extension.";
+				
+			else
+			
+				report "ID: Padding.";
+			
+			end if;
+
+		end if;
+		
 	end process;
 	
 	--Initialization of registers to 0.
@@ -140,7 +146,7 @@ begin
 		
 			for idx in REG_COUNT_MAX-1 downto 0 loop
 			
-				REG(idx) <= 0;
+				REG(idx) <= idx;
 				
 			end loop;
 			
@@ -149,5 +155,10 @@ begin
 		wait;
 	
 	end process;
+	
+	--Load from registers.
+	
+	REG_A <= REG(to_integer(unsigned(RS)));
+	REG_B <= REG(to_integer(unsigned(RT)));
 
 end architecture;
