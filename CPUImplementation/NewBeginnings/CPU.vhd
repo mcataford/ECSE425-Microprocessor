@@ -28,7 +28,14 @@ architecture CPU_Impl of CPU is
 	signal ID_REG_A,ID_REG_B,ID_IMMEDIATE,ID_WB_DATA: integer;
 	signal ID_INSTR: std_logic_vector(31 downto 0);
 	signal ID_WB_SRC: integer range 0 to REG_COUNT-1;
-	signal ID_CONTROL_VECTOR, ID_ALU_CONTROL_VECTOR: std_logic_vector(7 downto 0);  
+	signal ID_CONTROL_VECTOR: std_logic_vector(7 downto 0);
+
+	--EX stage specific
+	signal EX_PC: integer range 0 to PC_MAX-1;
+	signal EX_REG_A,EX_REG_B,EX_IMMEDIATE: integer;
+	signal EX_INSTR: std_logic_vector(31 downto 0);
+	signal EX_CONTROL_VECTOR: std_logic_vector(7 downto 0);
+	signal EX_R1,EX_R2: integer;
 
 
 	--Stage components
@@ -76,9 +83,30 @@ architecture CPU_Impl of CPU is
 			--Sign-extended immediate
 			IMMEDIATE: out integer;
 			--Control signals
-			CONTROL_VECTOR: out std_logic_vector(7 downto 0);
-			--ALU control signals
-			ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		);
+	
+	end component;
+	
+	component EX_STAGE
+	
+		port (
+			--INPUT
+			--Program counter
+			PC: in integer range 0 to 1023;
+			--Operands
+			A: in integer;
+			B: in integer;
+			Imm: in integer;
+			--Control signals
+			CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			--Instruction
+			INSTR: in std_logic_vector(31 downto 0);
+			
+			--OUTPUT
+			--Results
+			R1: out integer;
+			R2: out integer
 		);
 	
 	end component;
@@ -104,6 +132,41 @@ architecture CPU_Impl of CPU is
 			--Instruction
 			ID_INSTR: out std_logic_vector(31 downto 0)
 		);
+	end component;
+	
+	component ID_EX_REG
+	
+		port(
+			--INPUT
+			--Clock signal
+			CLOCK: in std_logic;
+			--Reset
+			RESET: in std_logic;
+			--Program counter
+			ID_PC: in integer range 0 to 1023;
+			--Instruction
+			ID_INSTR: in std_logic_vector(31 downto 0);
+			--Register values
+			ID_REG_A: in integer;
+			ID_REG_B: in integer;
+			--Immediate
+			ID_IMMEDIATE: in integer;
+			--Control signals
+			ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			
+			--OUTPUT
+			EX_PC: out integer range 0 to 1023;
+			--Instruction
+			EX_INSTR: out std_logic_vector(31 downto 0);
+			--Register values
+			EX_REG_A: out integer;
+			EX_REG_B: out integer;
+			--Immediate
+			EX_IMMEDIATE: out integer;
+			--Control signals
+			EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		);
+	
 	end component;
 
 begin
@@ -166,9 +229,58 @@ begin
 		--Sign-extended immediate
 		ID_IMMEDIATE,
 		--Control signals
+		ID_CONTROL_VECTOR
+	);
+	
+	ID_EX_R: ID_EX_REG port map(
+		--INPUT
+		--Clock signal
+		CLOCK,
+		--Reset
+		RESET,
+		--Program counter
+		ID_PC,
+		--Instruction
+		ID_INSTR,
+		--Register values
+		ID_REG_A,
+		ID_REG_B,
+		--Immediate
+		ID_IMMEDIATE,
+		--Control signals
 		ID_CONTROL_VECTOR,
-		--ALU control signals
-		ID_ALU_CONTROL_VECTOR
+		
+		--OUTPUT
+		--Program counter
+		EX_PC,
+		--Instruction
+		EX_INSTR,
+		--Register values
+		EX_REG_A,
+		EX_REG_B,
+		--Immediate
+		EX_IMMEDIATE,
+		--Control signals
+		EX_CONTROL_VECTOR
+	);
+	
+	EX_ST: EX_STAGE port map(
+		--INPUT
+		--Program counter
+		EX_PC,
+		--Operands
+		EX_REG_A,
+		EX_REG_B,
+		EX_IMMEDIATE,
+		--Control signals
+		EX_CONTROL_VECTOR,
+		--Instruction
+		EX_INSTR,
+		
+		--OUTPUT
+		--Results
+		EX_R1,
+		EX_R2
 	);
 
 end architecture;
