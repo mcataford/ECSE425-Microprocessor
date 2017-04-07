@@ -9,14 +9,12 @@ entity ID_STAGE is
 		--INPUT
 		--Clock signal
 		CLOCK: in std_logic;
-		--Program counter
-		PC: in integer range 0 to 1023;
 		--Instruction
 		INSTR: in std_logic_vector(31 downto 0);
 		--Writeback source
-		WB_SRC: in std_logic;
+		WB_SRC: in integer range 0 to 31;
 		--Writeback data
-		WB_DATA: in std_logic_vector(31 downto 0);
+		WB_DATA: in integer;
 		
 		--OUTPUT
 		--Register A
@@ -28,7 +26,7 @@ entity ID_STAGE is
 		--Control signals
 		CONTROL_VECTOR: out std_logic_vector(7 downto 0);
 		--ALU control signals
-		ALU_CONTROL_VECTOR: out std_logic_vector(6 downto 0)
+		ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 	
 end entity;
@@ -64,7 +62,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 			--Control signals
 			CONTROL_VECTOR: out std_logic_vector(7 downto 0);
 			--ALU control signals
-			ALU_CONTROL_VECTOR: out std_logic_vector(6 downto 0)
+			ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 		);
 		
 	end component;
