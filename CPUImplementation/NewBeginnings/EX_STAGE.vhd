@@ -19,8 +19,8 @@ entity EX_STAGE is
 		
 		--OUTPUT
 		--Results
-		R1: out integer;
-		R2: out integer
+		R1: out integer := 0;
+		R2: out integer := 0
 	);
 	
 end entity;

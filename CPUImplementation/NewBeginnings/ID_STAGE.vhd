@@ -18,13 +18,13 @@ entity ID_STAGE is
 		
 		--OUTPUT
 		--Register A
-		REG_A: out integer;
+		REG_A: out integer := 0;
 		--Register B
-		REG_B: out integer;
+		REG_B: out integer := 0;
 		--Sign-extended immediate
-		IMMEDIATE: out integer;
+		IMMEDIATE: out integer := 0;
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => '0')
 	);
 	
 end entity;

@@ -24,16 +24,16 @@ entity ID_EX_REG is
 		ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 		
 		--OUTPUT
-		EX_PC: out integer range 0 to 1023;
+		EX_PC: out integer range 0 to 1023 := 0;
 		--Instruction
-		EX_INSTR: out std_logic_vector(31 downto 0);
+		EX_INSTR: out std_logic_vector(31 downto 0) := (others => '0');
 		--Register values
-		EX_REG_A: out integer;
-		EX_REG_B: out integer;
+		EX_REG_A: out integer := 0;
+		EX_REG_B: out integer := 0;
 		--Immediate
-		EX_IMMEDIATE: out integer;
+		EX_IMMEDIATE: out integer := 0;
 		--Control signals
-		EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => '0')
 	);
 
 end entity;

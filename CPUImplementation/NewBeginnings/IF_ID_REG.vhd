@@ -18,9 +18,9 @@ entity IF_ID_REG is
 		
 		--OUTPUT
 		--Program counter
-		ID_PC: out integer range 0 to 1023;
+		ID_PC: out integer range 0 to 1023 := 0;
 		--Instruction
-		ID_INSTR: out std_logic_vector(31 downto 0)
+		ID_INSTR: out std_logic_vector(31 downto 0) := (others => '0')
 	);
 
 end entity;

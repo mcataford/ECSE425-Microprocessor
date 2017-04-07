@@ -35,11 +35,13 @@ architecture ID_CONTROL_UNIT_Impl of ID_CONTROL_UNIT is
 
 begin
 
-	CONTROL_UNIT_BEHAVIOUR: process(OPCODE, FUNCT)
+	CONTROL_UNIT_BEHAVIOUR: process
 	
 		variable uOPCODE,uFUNCT: unsigned(5 downto 0);
 
 	begin
+	
+		wait for 1 ns;
 	
 		uOPCODE := unsigned(OPCODE);
 		uFUNCT := unsigned(FUNCT);
@@ -68,7 +70,7 @@ begin
 			--There are only 2 J types: J and JAL
 			if uOPCODE = 2 or uOPCODE = 3 then
 			
-				CONTROL <= "00000000";
+				CONTROL <= "00000001";
 				
 				report "CONTROL UNIT: J-type.";
 				
@@ -83,27 +85,28 @@ begin
 				
 				elsif uOPCODE = 4 or uOPCODE = 5 then
 				
-					CONTROL <= "00000000";
+					CONTROL <= "00000010";
 				
 					report "CONTROL UNIT: Branching I-type.";
 				
 				elsif uOPCODE = 35 then
 				
-					CONTROL <= "00000000";
+					CONTROL <= "00000100";
 					
 					report "CONTROL UNIT: LW.";
 				
 				elsif uOPCODE = 43 then
 				
-					CONTROL <= "00000000";
+					CONTROL <= "00001000";
 				
 					report "CONTROL UNIT: SW.";
 					
 				else
 				
-					CONTROL <= "00000000";
+					CONTROL <= "00010000";
 				
 					report "CONTROL UNIT: invalid J/I-type instruction.";
+					report integer'image(to_integer(uOPCODE));
 				
 				end if;
 			

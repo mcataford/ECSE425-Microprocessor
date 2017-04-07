@@ -18,9 +18,9 @@ entity IF_STAGE is
 			
 			--OUTPUT
 			--PC output
-			PC_OUT: out integer range 0 to 1023;
+			PC_OUT: out integer range 0 to 1023 := 0;
 			--Fetched instruction
-			INSTR: out std_logic_vector(31 downto 0)
+			INSTR: out std_logic_vector(31 downto 0) := (others => '0')
 		);
 	
 end entity;
@@ -34,10 +34,10 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	constant PC_MAX: integer := 1024;
 	
 	--Instruction memory addr.
-	signal IR_ADDR: integer range 0 to ADDR_MAX-1;
+	signal IR_ADDR: integer range 0 to ADDR_MAX-1 := 0;
 	
 	--Fetched instruction.
-	signal IR_OUT: std_logic_vector(31 downto 0);
+	signal IR_OUT: std_logic_vector(31 downto 0) := (others => '0');
 	
 	--Memory stall request.
 	signal MEM_STALL: std_logic;
@@ -150,6 +150,6 @@ begin
 	PC_OUT <= PC_OUTPUT;
 	PC_REG <= PC_OUTPUT;
 	INSTR <= IR_OUT when INSTR_FEED = '1' else
-		(others => 'U');
+		(others => 'Z');
 
 end architecture;
