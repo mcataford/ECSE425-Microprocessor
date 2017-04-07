@@ -77,6 +77,8 @@ begin
 	
 	begin
 	
+		wait for 1.5 * CLK_PERIOD;
+	
 		INSTR <= "00100000000000010000001111101000";
 		PC <= 0;
 		
