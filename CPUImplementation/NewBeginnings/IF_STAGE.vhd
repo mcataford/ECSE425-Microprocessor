@@ -101,14 +101,25 @@ begin
 	stage_behaviour: process(CLOCK)
 	
 		variable INCREMENTED_PC: integer range 0 to PC_MAX-1;
+		variable DONE: boolean := false;
 	
 	begin
 	
+		--Asynchronous reset for the program counter.
 		if RESET = '1' then
 			
 			PC_OUTPUT <= 0;
+			
+			report "IF: Program counter reset.";
+		
+		--Detects the end of the program.
+		elsif now >= 1 ps and IR_OUT = "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" and not DONE then
+			
+			DONE := true;
+			
+			report "IF: Reached end of program.";
 	
-		elsif rising_edge(CLOCK) and MEM_STALL = '1' then
+		elsif rising_edge(CLOCK) and not DONE then
 			
 			--Incrementing the PC to the next value.
 			INCREMENTED_PC := PC_REG + 1;

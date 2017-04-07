@@ -102,7 +102,7 @@ BEGIN
 				
 				for idx in line_count to ram_size-1 loop
 
-					ram_block(idx) <= (others => '0');
+					ram_block(idx) <= (others => 'U');
 
 				end loop;
 				
