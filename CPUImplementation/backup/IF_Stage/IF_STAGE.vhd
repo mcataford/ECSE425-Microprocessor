@@ -12,13 +12,13 @@ entity IF_STAGE is
 		--PC MUX select signal--
 		PC_SRC: in std_logic;
 		--Feedback from ALU for PC calc.--
-		ALU_PC: in integer range 0 to 4096;
+		ALU_PC: in std_logic_vector(31 downto 0);
 		
 		--OUTPUT--
 		--PC output--
-		PC_OUT: out integer range 0 to 4096;
+		PC_OUT,
 		--Fetched instruction--
-		INSTR: out std_logic_vector(31 downto 0)
+		INSTR: out std_logic_vector(31 downto 0) := (others => '0')
 	);
 end IF_STAGE;
 
@@ -27,7 +27,6 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	--Intermediate signals--
 
 	signal PC_CURRENT, PC_INCR, PC_FEEDBACK: std_logic_vector(31 downto 0) := (others => '0');
-	
 	
 	signal INSTR_ADDR: integer := 0;
 	
