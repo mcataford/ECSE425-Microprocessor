@@ -26,7 +26,7 @@ entity ID_EX_REG is
 		--OUTPUT
 		EX_PC: out integer range 0 to 1023 := 0;
 		--Instruction
-		EX_INSTR: out std_logic_vector(31 downto 0) := (others => '0');
+		EX_INSTR: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Register values
 		EX_REG_A: out integer := 0;
 		EX_REG_B: out integer := 0;

@@ -20,7 +20,7 @@ entity IF_STAGE is
 			--PC output
 			PC_OUT: out integer range 0 to 1023 := 0;
 			--Fetched instruction
-			INSTR: out std_logic_vector(31 downto 0) := (others => '0')
+			INSTR: out std_logic_vector(31 downto 0) := (others => 'Z')
 		);
 	
 end entity;

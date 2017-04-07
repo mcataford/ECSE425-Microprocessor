@@ -21,19 +21,19 @@ architecture CPU_Impl of CPU is
 	--IF stage specific
 	signal IF_PC_RESET, IF_PC_SELECT: std_logic := '0';
 	signal IF_PC_ALU, IF_PC: integer range 0 to PC_MAX-1 := 0;
-	signal IF_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+	signal IF_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	--ID stage specific
 	signal ID_PC: integer range 0 to PC_MAX-1 := 0;
 	signal ID_REG_A,ID_REG_B,ID_IMMEDIATE,ID_WB_DATA: integer := 0;
-	signal ID_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal ID_WB_SRC: integer range 0 to REG_COUNT-1 := 0;
 	signal ID_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
 
 	--EX stage specific
 	signal EX_PC: integer range 0 to PC_MAX-1 := 0;
 	signal EX_REG_A,EX_REG_B,EX_IMMEDIATE: integer := 0;
-	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal EX_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
 	signal EX_R1,EX_R2: integer := 0;
 
