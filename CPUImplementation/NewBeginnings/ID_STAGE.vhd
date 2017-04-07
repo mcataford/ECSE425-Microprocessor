@@ -24,9 +24,7 @@ entity ID_STAGE is
 		--Sign-extended immediate
 		IMMEDIATE: out integer;
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0);
-		--ALU control signals
-		ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 	
 end entity;
@@ -47,6 +45,8 @@ architecture ID_STAGE_Impl of ID_STAGE is
 	signal IMM: std_logic_vector(15 downto 0);
 	signal ADDR: std_logic_vector(25 downto 0);
 	
+	signal CONTROL_VECTOR_INTERNAL: std_logic_vector(7 downto 0);
+	
 	--Subcomponent instantiation
 	
 	component ID_CONTROL_UNIT
@@ -60,9 +60,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 			
 			--OUTPUT
 			--Control signals
-			CONTROL_VECTOR: out std_logic_vector(7 downto 0);
-			--ALU control signals
-			ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 		);
 		
 	end component;
@@ -78,9 +76,7 @@ begin
 		
 		--OUTPUT
 		--Control signals
-		CONTROL_VECTOR,
-		--ALU signals
-		ALU_CONTROL_VECTOR
+		CONTROL_VECTOR_INTERNAL
 	);
 
 	STAGE_BEHAVIOUR: process(CLOCK)
@@ -89,11 +85,12 @@ begin
 		
 		variable ZERO_EXT: std_logic_vector(15 downto 0) := (others => '0');
 		variable ONE_EXT: std_logic_vector(15 downto 0) := (others => '0');
+		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'U');
 		
 	
 	begin
 	
-		if (rising_edge(CLOCK) or falling_edge(CLOCK)) and now >= 1 ps then
+		if now >= 1 ps and not(INSTR = UNDEF) then
 			
 			--Parsing the instruction word.
 			
@@ -129,9 +126,22 @@ begin
 				report "ID: Padding.";
 			
 			end if;
-
+			
+			REG_A <= REG(to_integer(unsigned(RS)));
+			REG_B <= REG(to_integer(unsigned(RT)));
+			CONTROL_VECTOR <= CONTROL_VECTOR_INTERNAL;
+			
+			else
+				
+				REG_A <= 0;
+				REG_B <= 0;
+				IMMEDIATE <= 0;
+				CONTROL_VECTOR <= (others => '0');
+				
 		end if;
 		
+
+
 	end process;
 	
 	--Initialization of registers to 0.
@@ -142,9 +152,9 @@ begin
 	
 		if now < 1 ps then
 		
-			for idx in REG_COUNT_MAX-1 downto 0 loop
+			for idx in 0 to REG_COUNT_MAX-1 loop
 			
-				REG(idx) <= idx;
+				REG(idx) <= idx + 100;
 				
 			end loop;
 			
@@ -156,7 +166,5 @@ begin
 	
 	--Load from registers.
 	
-	REG_A <= REG(to_integer(unsigned(RS)));
-	REG_B <= REG(to_integer(unsigned(RT)));
 
 end architecture;
