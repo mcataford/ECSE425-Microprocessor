@@ -14,9 +14,7 @@ entity ID_CONTROL_UNIT is
 		
 		--OUTPUT
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0);
-		--ALU control signals
-		ALU_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 	
 end entity;
@@ -30,10 +28,10 @@ architecture ID_CONTROL_UNIT_Impl of ID_CONTROL_UNIT is
 	--3: RegWrite
 	--4: MemRead
 	--5: MemWrite
-	--7: Branch
-	--8: PCSrc
+	--6: Branch
+	--7: PCSrc
 
-	signal CONTROL: std_logic_vector(7 downto 0);
+	signal CONTROL: std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 
@@ -51,11 +49,13 @@ begin
 			
 			--All R-types have the same footprint except JR
 			if uFUNCT = 8 then
-				CONTROL <= "00001011";
+				
+				CONTROL <= "00001001";
 				
 				report "CONTROL UNIT: R-type, JR.";
 				
 			else
+				
 				CONTROL <= "00001011";
 				
 				report "CONTROL UNIT: R-type, standard.";
@@ -77,21 +77,31 @@ begin
 				
 				if uOPCODE = 8 or uOPCODE = 10 or uOPCODE = 12 or uOPCODE = 13 or uOPCODE = 14 then
 				
+					CONTROL <= "00001011";
+				
 					report "CONTROL UNIT: Arithmetic or logical I-type.";
 				
 				elsif uOPCODE = 4 or uOPCODE = 5 then
 				
+					CONTROL <= "00000000";
+				
 					report "CONTROL UNIT: Branching I-type.";
 				
 				elsif uOPCODE = 35 then
+				
+					CONTROL <= "00000000";
 					
 					report "CONTROL UNIT: LW.";
 				
 				elsif uOPCODE = 43 then
 				
+					CONTROL <= "00000000";
+				
 					report "CONTROL UNIT: SW.";
 					
 				else
+				
+					CONTROL <= "00000000";
 				
 					report "CONTROL UNIT: invalid J/I-type instruction.";
 				
@@ -100,9 +110,9 @@ begin
 			end if;
 		
 		end if;
+		
+		CONTROL_VECTOR <= CONTROL;
 	
 	end process;
 	
-	CONTROL_VECTOR <= CONTROL;
-
 end architecture;
