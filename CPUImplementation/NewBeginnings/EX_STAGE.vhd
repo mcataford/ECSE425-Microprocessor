@@ -13,7 +13,7 @@ entity EX_STAGE is
 		B: in integer;
 		Imm: in integer;
 		--Control signals
-		CONTROL_VECTOR: in std_logic_vector(8 downto 0);
+		CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 		--Instruction
 		INSTR: in std_logic_vector(31 downto 0);
 		
@@ -68,7 +68,7 @@ begin
 	--(8): PCSrc
 	--See ID_CONTROL_UNIT.vhd for details
 	
-	OPERAND_A <= A when CONTROL_VECTOR(8) = '0' else
+	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else
 						PC;
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else
 						Imm;
