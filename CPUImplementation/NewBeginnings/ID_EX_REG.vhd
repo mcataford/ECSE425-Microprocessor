@@ -21,7 +21,7 @@ entity ID_EX_REG is
 		--Immediate
 		ID_IMMEDIATE: in integer;
 		--Control signals
-		ID_CONTROL_VECTOR: in std_logic_vector(8 downto 0);
+		ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 		
 		--OUTPUT
 		EX_PC: out integer range 0 to 1023;
@@ -33,7 +33,7 @@ entity ID_EX_REG is
 		--Immediate
 		EX_IMMEDIATE: out integer;
 		--Control signals
-		EX_CONTROL_VECTOR: out std_logic_vector(8 downto 0)
+		EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 
 end entity;
