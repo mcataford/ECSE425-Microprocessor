@@ -108,8 +108,8 @@ begin
 	FSM: process(CLOCK)
 	
 		--State variables
-		variable CURRENT_STATE: integer range 0 to 2 := 0;
-		variable NEXT_STATE: integer range 0 to 2 := 0;
+		variable CURRENT_STATE: integer range 0 to 1 := 0;
+		variable NEXT_STATE: integer range 0 to 1 := 0;
 		
 		--Temporary PC buffer
 		variable PC_INCREMENT: integer range 0 to PC_MAX-1 := 0;
@@ -117,26 +117,41 @@ begin
 		--End-of-program flag
 		variable EOP: boolean := false;
 		
-		--EOP pattern
+		--Predefined patterns for comparison
 		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	begin
 	
 		if rising_edge(CLOCK) then
+		
 			--State switch.
 			CURRENT_STATE := NEXT_STATE;
 		
+			--State actions
 			case CURRENT_STATE is
 			
 				--State 0:
-				--Generate new PC candidate
-				--Send request to instr. memory for the next word.
+				--Increment PC
+				--Send request to memory
 				when 0 =>
+					--Increment the PC
 					PC_INCREMENT := PC_REG + 1;
 					
-					IR_ADDR <= PC_REG;
+					--If the program isn't done yet, make a request
+					if not EOP then
+					
+						IR_ADDR <= PC_REG;			
+						
+					--Else, request a placeholder address.
+					else
+						IR_ADDR <= 0;
+						
+					end if;
+					
+					--Set up the memory request
 					IR_MEMREAD <= '1';
 					
+					--Point to next state.
 					NEXT_STATE := 1;
 					
 					report "IF: FSM S0 - Memory request sent.";
@@ -151,12 +166,11 @@ begin
 					if IR_MEMSTALL = '0' then
 					
 						--End of program catch
-						if IR_OUT = UNDEF then
+						if IR_OUT = UNDEF or EOP then
 						
+							--In this case, we ignore the instruction and set Z instead.
 							EOP := true;
 							INSTR <= (others => 'Z');
-							
-							NEXT_STATE := 2;
 							
 							report "IF: FSM S2 - End of program. Stopping feed.";
 						
@@ -164,21 +178,24 @@ begin
 						else
 							INSTR <= IR_OUT;
 							
-							if PC_SEL = '0' then
-								PC_REG <= PC_INCREMENT;
-								PC_OUT <= PC_INCREMENT;
-							else
-								PC_REG <= ALU_PC;
-								PC_OUT <= ALU_PC;
-							end if;
-							
-							--Reset parameters.
-							IR_MEMREAD <= '0';
-							NEXT_STATE := 0;
-							
 							report "IF: FSM S2 - Memory request fulfilled. Posted output.";
 							
 						end if;
+						
+						--Update the PC accumulator.
+						if PC_SEL = '0' then
+							PC_REG <= PC_INCREMENT;
+							PC_OUT <= PC_INCREMENT;
+						else
+							PC_REG <= ALU_PC;
+							PC_OUT <= ALU_PC;
+						end if; 
+						
+						--Reset MEMREAD
+						IR_MEMREAD <= '0';
+						
+						--Back to initial state.
+						NEXT_STATE := 0;
 						
 					--Stall while waiting for instr. mem.
 					else
@@ -186,11 +203,6 @@ begin
 						report "IF: FSM S2 - Waiting on request fulfillment.";
 						
 					end if;
-					
-				when 2 =>
-					
-					--Nop, stage locked since no more instructions to push through.
-					
 					
 			end case;
 		
