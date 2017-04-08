@@ -24,7 +24,7 @@ entity ID_STAGE is
 		--Sign-extended immediate
 		IMMEDIATE: out integer := 0;
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => '0')
+		CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => 'Z')
 	);
 	
 end entity;
@@ -33,19 +33,12 @@ architecture ID_STAGE_Impl of ID_STAGE is
 
 	--Intermediate signals and constants
 	
+	--Register count
 	constant REG_COUNT_MAX: integer := 32;
 	
 	--Register file
 	type REGISTER_FILE is array (REG_COUNT_MAX-1 downto 0) of integer;
 	signal REG: REGISTER_FILE;
-	
-	--Instruction parsing
-	signal RS,RT,RD,SHAMT: std_logic_vector(4 downto 0);
-	signal OPCODE,FUNCT: std_logic_vector(5 downto 0);
-	signal IMM: std_logic_vector(15 downto 0);
-	signal ADDR: std_logic_vector(25 downto 0);
-	
-	signal CONTROL_VECTOR_INTERNAL: std_logic_vector(7 downto 0);
 	
 	--Subcomponent instantiation
 	
@@ -67,40 +60,53 @@ architecture ID_STAGE_Impl of ID_STAGE is
 
 begin
 
+	--Control unit
 	CU: ID_CONTROL_UNIT port map(
 		--INPUT
 		--Opcode
-		OPCODE,
+		INSTR(31 downto 26),
 		--Funct
-		FUNCT,
+		INSTR(5 downto 0),
 		
 		--OUTPUT
 		--Control signals
-		CONTROL_VECTOR_INTERNAL
+		CONTROL_VECTOR
 	);
 
-	STAGE_BEHAVIOUR: process(INSTR,CLOCK)
+	STAGE_BEHAVIOUR: process(INSTR)
 	
-		variable uOPCODE, uFUNCT: unsigned(5 downto 0);
-		
+		--Patterns for comparisons and assign.
 		variable ZERO_EXT: std_logic_vector(15 downto 0) := (others => '0');
 		variable ONE_EXT: std_logic_vector(15 downto 0) := (others => '0');
 		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 		
+		--Instruction parsing
+		variable RS,RT,RD,SHAMT: std_logic_vector(4 downto 0) := (others => 'Z');
+		variable OPCODE,FUNCT: std_logic_vector(5 downto 0) := (others => 'Z');
+		variable IMM: std_logic_vector(15 downto 0) := (others => 'Z');
+		variable ADDR: std_logic_vector(25 downto 0) := (others => 'Z');
+		
+		--Unsigned versions of OP & FU for comparison
+		variable uOPCODE, uFUNCT: unsigned(5 downto 0) := (others => 'Z');
+		
 	begin
-	
-	
+		
+		--Stage action only if the register file is init. and the instruction is valid.
 		if now >= 1 ps and not(INSTR = UNDEF) then
 			
 			--Parsing the instruction word.
-			OPCODE <= INSTR(31 downto 26);
-			RS <= INSTR(25 downto 21);
-			RT <= INSTR(20 downto 16);
-			RD <= INSTR(15 downto 11);
-			SHAMT <= INSTR(10 downto 6);
-			FUNCT <= INSTR(5 downto 0);
-			IMM <= INSTR(15 downto 0);
-			ADDR <= INSTR(25 downto 0);
+			OPCODE := INSTR(31 downto 26);
+			RS := INSTR(25 downto 21);
+			RT := INSTR(20 downto 16);
+			RD := INSTR(15 downto 11);
+			SHAMT := INSTR(10 downto 6);
+			FUNCT := INSTR(5 downto 0);
+			IMM := INSTR(15 downto 0);
+			ADDR := INSTR(25 downto 0);
+			
+			--Set register output.
+			REG_A <= REG(to_integer(unsigned(RS)));
+			REG_B <= REG(to_integer(unsigned(RT)));
 			
 			--Shortcuts for further processing
 			uOPCODE := unsigned(OPCODE);
@@ -126,16 +132,13 @@ begin
 			
 			end if;
 			
-			REG_A <= REG(to_integer(unsigned(RS)));
-			REG_B <= REG(to_integer(unsigned(RT)));
-			CONTROL_VECTOR <= CONTROL_VECTOR_INTERNAL;
-			
-			else
+		else
 				
-				REG_A <= 0;
-				REG_B <= 0;
-				IMMEDIATE <= 0;
-				CONTROL_VECTOR <= (others => '0');
+			--Default value.
+			
+			REG_A <= 0;
+			REG_B <= 0;
+			IMMEDIATE <= 0;
 				
 		end if;
 
