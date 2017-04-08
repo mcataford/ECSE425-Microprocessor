@@ -12,7 +12,7 @@ ENTITY memory IS
 		clock_period : time := 1 ns;
 		from_file : boolean := false;
 		file_in : string := "input.txt";
-		to_file : boolean := true;
+		to_file : boolean := false;
 		file_out : string := "output.txt";
 		sim_limit : time := 10000 ns
 	);
@@ -20,7 +20,7 @@ ENTITY memory IS
 	PORT (
 		clock: IN STD_LOGIC;
 		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address: IN INTEGER RANGE 0 TO (ram_size/4)-1;
+		address: IN INTEGER RANGE 0 TO (ram_size)-1;
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -31,7 +31,7 @@ END memory;
 ARCHITECTURE rtl OF memory IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
-	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)/4-1;
+	SIGNAL read_address_reg: INTEGER RANGE 0 to (ram_size)-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 
@@ -55,67 +55,68 @@ BEGIN
 	BEGIN
 		--This is a cheap trick to initialize the SRAM in simulation
 		IF(now < 1 ps)THEN
-			if not from_file then
-				For i in 0 to (ram_size/4)-1 LOOP
-					ram_block(i) <= std_logic_vector(to_unsigned(0,32));
+			-- if not from_file then
+				For i in 0 to (ram_size)-1 LOOP
+					ram_block(i) <= std_logic_vector(to_unsigned(i,32));
 				END LOOP;
-			else  
-				file_open(file_input,file_in,READ_MODE); 
-
-      				while not endfile(file_input) loop
-					
-      					readline (file_input,line_num);
-      					READ (line_num,line_content);
-			       	
-					for idx in 1 to 32 loop
-
-						if character'pos(line_content(idx)) = 49 then
-							INSTR_READ(idx-1) := '1';
-						else
-							INSTR_READ(idx-1) := '0';
-						end if;
-					end loop;	
-
-					
-					ram_block(line_count) <= INSTR_READ;	
-				
-					line_count := line_count + 1;
-
-			      end loop;
-
-			      for idx in line_count to (ram_size/4)-1 loop
-
-					ram_block(idx) <= (others => '0');
-
-			      end loop;
-
-			      file_close(file_input);
-			end if;
-
-		elsif now >= sim_limit  and to_file then
-
-			file_open(file_output, file_out, WRITE_MODE);
-
-			for mem_index in 0 to (ram_size / 4)-1 loop
-				
-				MEM_LOOKUP := ram_block(mem_index);
-
-				for idx in 1 to 32 loop
-					if MEM_LOOKUP(idx-1) = '1' then
-						INSTR_WRITE(idx) := '1';
-					else
-						INSTR_WRITE(idx) := '0';
-					end if;
-				end loop;
-
-				write(line_num, INSTR_WRITE);
-				writeline(file_output,line_num);
-
-			end loop;
-
-			file_close(file_output);
-			
 		end if;
+				-- ram_block(3327) <= "01010101010101010101010101010101";
+			-- else  
+			-- 	file_open(file_input,file_in,READ_MODE); 
+
+      		-- 		while not endfile(file_input) loop
+					
+      		-- 			readline (file_input,line_num);
+      		-- 			READ (line_num,line_content);
+			       	
+			-- 		for idx in 1 to 32 loop
+
+			-- 			if character'pos(line_content(idx)) = 49 then
+			-- 				INSTR_READ(idx-1) := '1';
+			-- 			else
+			-- 				INSTR_READ(idx-1) := '0';
+			-- 			end if;
+			-- 		end loop;	
+
+					
+			-- 		ram_block(line_count) <= INSTR_READ;	
+				
+			-- 		line_count := line_count + 1;
+
+			--       end loop;
+
+			--       for idx in line_count to (ram_size/4)-1 loop
+
+			-- 		ram_block(idx) <= (others => '0');
+
+			--       end loop;
+
+			--       file_close(file_input);
+			-- end if;
+
+		-- elsif now >= sim_limit  and to_file then
+
+		-- 	file_open(file_output, file_out, WRITE_MODE);
+
+		-- 	for mem_index in 0 to (ram_size / 4)-1 loop
+				
+		-- 		MEM_LOOKUP := ram_block(mem_index);
+
+		-- 		for idx in 1 to 32 loop
+		-- 			if MEM_LOOKUP(idx-1) = '1' then
+		-- 				INSTR_WRITE(idx) := '1';
+		-- 			else
+		-- 				INSTR_WRITE(idx) := '0';
+		-- 			end if;
+		-- 		end loop;
+
+		-- 		write(line_num, INSTR_WRITE);
+		-- 		writeline(file_output,line_num);
+
+		-- 	end loop;
+
+		-- 	file_close(file_output);
+			
 
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
