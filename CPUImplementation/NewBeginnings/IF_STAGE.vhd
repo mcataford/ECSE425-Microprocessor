@@ -3,7 +3,7 @@
 -- Instruction fetch stage
 --
 -- Author: Marc Cataford
--- Last modified: 7/4/2017
+-- Last modified: 8/4/2017
 
 
 library IEEE;
@@ -210,8 +210,4 @@ begin
 	
 	end process;
 	
-	
-	
-
-
 end architecture;
