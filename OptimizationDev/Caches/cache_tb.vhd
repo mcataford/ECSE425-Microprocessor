@@ -25,9 +25,9 @@ port(
 
     m_addr : out integer range 0 to ram_size-1;
     m_read : out std_logic;
-    m_readdata : in std_logic_vector (7 downto 0);
+    m_readdata : in std_logic_vector (31 downto 0);
     m_write : out std_logic;
-    m_writedata : out std_logic_vector (7 downto 0);
+    m_writedata : out std_logic_vector (31 downto 0);
     m_waitrequest : in std_logic
 );
 end component;
@@ -40,11 +40,11 @@ GENERIC(
 );
 PORT (
     clock: IN STD_LOGIC;
-    writedata: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+    writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
     address: IN INTEGER RANGE 0 TO ram_size-1;
     memwrite: IN STD_LOGIC;
     memread: IN STD_LOGIC;
-    readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+    readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
     waitrequest: OUT STD_LOGIC
 );
 end component;
@@ -63,9 +63,9 @@ signal s_waitrequest : std_logic;
 
 signal m_addr : integer range 0 to 2147483647;
 signal m_read : std_logic;
-signal m_readdata : std_logic_vector (7 downto 0);
+signal m_readdata : std_logic_vector (31 downto 0);
 signal m_write : std_logic;
-signal m_writedata : std_logic_vector (7 downto 0);
+signal m_writedata : std_logic_vector (31 downto 0);
 signal m_waitrequest : std_logic; 
 
 begin
