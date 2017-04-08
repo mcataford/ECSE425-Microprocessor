@@ -12,7 +12,7 @@ architecture IF_STAGE_tst of IF_STAGE_tb is
 	constant PC_MAX: integer := 1024;
 
 	signal CLOCK,RESET,PC_SEL: std_logic := '0';
-	signal ALU_PC, PC_OUT: integer range 0 to PC_MAX-1 := 0;
+	signal ALU_PC, PC_OUT: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal INSTR: std_logic_vector(31 downto 0) := (others => '0');
 
 	component IF_STAGE
@@ -26,11 +26,11 @@ architecture IF_STAGE_tst of IF_STAGE_tb is
 			--PC MUX select signal
 			PC_SEL: in std_logic;
 			--Feedback from ALU for PC calc.
-			ALU_PC: in integer range 0 to PC_MAX-1;
+			ALU_PC: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--PC output
-			PC_OUT: out integer range 0 to PC_MAX-1;
+			PC_OUT: out std_logic_vector(31 downto 0);
 			--Fetched instruction
 			INSTR: out std_logic_vector(31 downto 0)
 		);
@@ -69,7 +69,6 @@ begin
 		wait for 1.5 * CLK_PERIOD;
 		
 		RESET <= '0';
-		
 	
 		wait;
 		

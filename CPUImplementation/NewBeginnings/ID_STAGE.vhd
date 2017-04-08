@@ -12,17 +12,17 @@ entity ID_STAGE is
 		--Instruction
 		INSTR: in std_logic_vector(31 downto 0);
 		--Writeback source
-		WB_SRC: in integer range 0 to 31;
+		WB_SRC: in std_logic_vector(31 downto 0);
 		--Writeback data
-		WB_DATA: in integer;
+		WB_DATA: in std_logic_vector(31 downto 0);
 		
 		--OUTPUT
 		--Register A
-		REG_A: out integer := 0;
+		REG_A: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Register B
-		REG_B: out integer := 0;
+		REG_B: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Sign-extended immediate
-		IMMEDIATE: out integer := 0;
+		IMMEDIATE: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Control signals
 		CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => 'Z')
 	);
@@ -37,7 +37,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 	constant REG_COUNT_MAX: integer := 32;
 	
 	--Register file
-	type REGISTER_FILE is array (REG_COUNT_MAX-1 downto 0) of integer;
+	type REGISTER_FILE is array (REG_COUNT_MAX-1 downto 0) of std_logic_vector(31 downto 0);
 	signal REG: REGISTER_FILE;
 	
 	--Subcomponent instantiation
@@ -116,13 +116,13 @@ begin
 			
 			--Zero-extend any logical ops (ANDI, ORI, XORI)
 			if uOPCODE = 12 or uOPCODE = 13 or uOPCODE = 14 then
-				IMMEDIATE <= to_integer(unsigned(ZERO_EXT & IMM));
+				IMMEDIATE <= ZERO_EXT & IMM;
 				
 				report "ID: Zero extension.";
 				
 			--Sign-extend Arithmetic or memory accesses
 			elsif uOPCODE = 8 or uOPCODE = 10 or uOPCODE = 35 or uOPCODE = 43 then
-				IMMEDIATE <= to_integer(unsigned(ONE_EXT & IMM));
+				IMMEDIATE <= ONE_EXT & IMM;
 				
 				report "ID: Sign extension.";
 				
@@ -136,9 +136,9 @@ begin
 				
 			--Default value.
 			
-			REG_A <= 0;
-			REG_B <= 0;
-			IMMEDIATE <= 0;
+			REG_A <= (others => 'Z');
+			REG_B <= (others => 'Z');
+			IMMEDIATE <= (others => 'Z');
 				
 		end if;
 
@@ -154,7 +154,7 @@ begin
 		
 			for idx in 0 to REG_COUNT_MAX-1 loop
 			
-				REG(idx) <= idx + 100;
+				REG(idx) <= std_logic_vector(to_unsigned(idx + 100,32));
 				
 			end loop;
 			

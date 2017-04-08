@@ -22,11 +22,11 @@ entity IF_STAGE is
 			--PC MUX select signal
 			PC_SEL: in std_logic;
 			--Feedback from ALU for PC calc.
-			ALU_PC: in integer range 0 to 1023;
+			ALU_PC: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--PC output
-			PC_OUT: out integer range 0 to 1023 := 0;
+			PC_OUT: out std_logic_vector(31 downto 0) := (others => 'Z');
 			--Fetched instruction
 			INSTR: out std_logic_vector(31 downto 0) := (others => 'Z')
 		);
@@ -41,7 +41,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	constant PC_MAX: integer := 1024;
 	
 	--Instruction memory addr.
-	signal IR_ADDR: integer range 0 to PC_MAX-1 := 0;
+	signal IR_ADDR: integer range 0 to PC_MAX-1;
 	
 	--Fetched instruction.
 	signal IR_OUT: std_logic_vector(31 downto 0) := (others => '0');
@@ -50,7 +50,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	signal IR_MEMSTALL: std_logic;
 	
 	--Program counter memory.
-	signal PC_REG: integer range 0 to PC_MAX-1 := 0;
+	signal PC_REG: std_logic_vector(31 downto 0) := (others => '0');
 	
 	--Memory read allow
 	signal IR_MEMREAD: std_logic := '0';
@@ -112,7 +112,7 @@ begin
 		variable NEXT_STATE: integer range 0 to 1 := 0;
 		
 		--Temporary PC buffer
-		variable PC_INCREMENT: integer range 0 to PC_MAX-1 := 0;
+		variable PC_INCREMENT: std_logic_vector(31 downto 0) := (others => '0');
 		
 		--End-of-program flag
 		variable EOP: boolean := false;
@@ -135,12 +135,12 @@ begin
 				--Send request to memory
 				when 0 =>
 					--Increment the PC
-					PC_INCREMENT := PC_REG + 1;
+					PC_INCREMENT := std_logic_vector(unsigned(PC_REG) + 1);
 					
 					--If the program isn't done yet, make a request
 					if not EOP then
 					
-						IR_ADDR <= PC_REG;			
+						IR_ADDR <= to_integer(unsigned(PC_REG));			
 						
 					--Else, request a placeholder address.
 					else

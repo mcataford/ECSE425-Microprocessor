@@ -7,11 +7,11 @@ entity EX_STAGE is
 	port (
 		--INPUT
 		--Program counter
-		PC: in integer range 0 to 1023;
+		PC: in std_logic_vector(31 downto 0);
 		--Operands
-		A: in integer;
-		B: in integer;
-		Imm: in integer;
+		A: in std_logic_vector(31 downto 0);
+		B: in std_logic_vector(31 downto 0);
+		Imm: in std_logic_vector(31 downto 0);
 		--Control signals
 		CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 		--Instruction
@@ -19,31 +19,28 @@ entity EX_STAGE is
 		
 		--OUTPUT
 		--Results
-		R1: out integer := 0;
-		R2: out integer := 0
+		R: out std_logic_vector(63 downto 0)
 	);
 	
 end entity;
 
 architecture EX_STAGE_Impl of EX_STAGE is
 
-	signal OPERAND_A, OPERAND_B: integer := 0;
+	signal OPERAND_A, OPERAND_B: std_logic_vector(31 downto 0);
 
 	component ALU
 		port(
 			--INPUT
 			--Operand A
-			A: in integer;
+			A: in std_logic_vector(31 downto 0);
 			--Operand B
-			B: in integer;
+			B: in std_logic_vector(31 downto 0);
 			--Instruction
 			INSTR: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--Results
-			R1: out integer;
-			--Second result, used if width=64b
-			R2: out integer
+			R: out std_logic_vector(63 downto 0)
 		);
 	end component;
 
@@ -59,38 +56,10 @@ begin
 		
 		--OUTPUT
 		--Results
-		R1,
-		R2
+		R
 	);
-	
-	-- STAGE_BEHAVIOUR: process(PC)
-	
-	-- begin
-	
-		-- --ALU input multiplexers
-		-- --(1): ALUSrc
-		-- --(8): PCSrc
-		-- --See ID_CONTROL_UNIT.vhd for details
-		
-		-- if CONTROL_VECTOR(7) = '0' then
-			-- OPERAND_A <= A;
-		-- else
-			-- OPERAND_A <= PC;
-		-- end if;
-		
-		-- if CONTROL_VECTOR(1) = '0' then
-			-- OPERAND_B <= B;
-		-- else
-			-- OPERAND_B <= Imm;
-		-- end if;
-			
-	
-	-- end process;
 	
 	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else PC;
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else Imm;
-	
-
-	
 
 end architecture;

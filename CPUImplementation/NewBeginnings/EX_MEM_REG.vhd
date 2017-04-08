@@ -10,10 +10,9 @@ entity EX_MEM_REG is
 		--Clock signal
 		CLOCK: in std_logic;
 		--Results
-		EX_R1: in integer;
-		EX_R2: in integer;
+		EX_R: in std_logic_vector(63 downto 0);
 		--Operand B forwarding
-		EX_B_FW: in integer;
+		EX_B_FW: in std_logic_vector(31 downto 0);
 		--Instruction
 		EX_INSTR: in std_logic_vector(31 downto 0);
 		--Control signals
@@ -21,14 +20,34 @@ entity EX_MEM_REG is
 		
 		--OUTPUT
 		--Results
-		MEM_R1: out integer;
-		MEM_R2: out integer;
+		MEM_R: out std_logic_vector(63 downto 0);
 		--Operand B forwarding
-		MEM_B_FW: out integer;
+		MEM_B_FW: out std_logic_vector(31 downto 0);
 		--Instruction
 		MEM_INSTR: out std_logic_vector(31 downto 0);
 		--Control signals
-		MEM_CONTROL_VECTOR: out std_logic_vector(7 downto 0);
+		MEM_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 	);
 	
 end entity;
+
+architecture EX_MEM_REG_Impl of EX_MEM_REG is
+
+begin
+
+	REG_BEHAVIOUR: process(CLOCK)
+	
+	begin
+	
+		if rising_edge(CLOCK) then
+		
+			MEM_R <= EX_R;
+			MEM_B_FW <= EX_B_FW;
+			MEM_INSTR <= EX_INSTR;
+			MEM_CONTROL_VECTOR <= EX_CONTROL_VECTOR;
+		
+		end if;
+	
+	end process;
+
+end architecture;

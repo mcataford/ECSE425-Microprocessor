@@ -19,13 +19,13 @@ entity IF_ID_REG is
 		--Reset
 		RESET: in std_logic;
 		--Program counter
-		IF_PC: in integer range 0 to 1023;
+		IF_PC: in std_logic_vector(31 downto 0);
 		--Instruction
 		IF_INSTR: in std_logic_vector(31 downto 0);
 		
 		--OUTPUT
 		--Program counter
-		ID_PC: out integer range 0 to 1023 := 0;
+		ID_PC: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Instruction
 		ID_INSTR: out std_logic_vector(31 downto 0) := (others => 'Z')
 	);
@@ -38,8 +38,8 @@ begin
 
 	REG_BEHAVIOUR: process(IF_PC)
 	
-		variable REG_PC: integer := 0;
-		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+		variable REG_PC: std_logic_vector(31 downto 0);
+		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	begin
 	
