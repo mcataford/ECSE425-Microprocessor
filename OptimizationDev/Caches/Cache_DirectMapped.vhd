@@ -20,9 +20,9 @@ port(
     
 	m_addr : out integer range 0 to ram_size-1;
 	m_read : out std_logic;
-	m_readdata : in std_logic_vector (7 downto 0);
+	m_readdata : in std_logic_vector (31 downto 0);
 	m_write : out std_logic;
-	m_writedata : out std_logic_vector (7 downto 0);
+	m_writedata : out std_logic_vector (31 downto 0);
 	m_waitrequest : in std_logic
 );
 end Cache_DirectMapped;
@@ -262,7 +262,7 @@ if rising_edge(clock) then
 		
 			m_addr <= to_integer(unsigned(C_NEW_ADDR));
 			--Send 8 bits to the memory
-			m_writedata <= C_ROW(127-8*WR_placemark downto 120-8*WR_placemark);	
+			m_writedata <= C_ROW(127-8*WR_placemark downto 96-8*WR_placemark);	
 			--This loop is to ensure that THIS process doesnt move forward but will be interupted and go to the waiting state for memory to deal with the 8 bits of input
 			--When WR_placemark reaches 15, we will be writing the last 8 bits of the set to memory. When WR_placemark is 16, there are no more bits to write and writing is complete
 			--WR_placemark is incremented in each wait cycle in the MEM_WAIT state, thus incrementing for the next byte to be written as necessary.
