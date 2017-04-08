@@ -31,9 +31,9 @@ begin
 	
 	begin
 	
-		CLOCK <= '0';
-		wait for 0.5 * CLK_PERIOD;
 		CLOCK <= '1';
+		wait for 0.5 * CLK_PERIOD;
+		CLOCK <= '0';
 		wait for 0.5 * CLK_PERIOD;
 		
 	end process;
@@ -42,9 +42,9 @@ begin
 	
 	begin
 	
-		RESET <= '1';
+		--RESET <= '1';
 		
-		wait for 1.5 * CLK_PERIOD;
+		--wait for 1 * CLK_PERIOD;
 		
 		RESET <= '0';
 		
