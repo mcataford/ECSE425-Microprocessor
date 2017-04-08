@@ -20,9 +20,9 @@ port(
     
 	m_addr : out integer range 0 to ram_size-1;
 	m_read : out std_logic;
-	m_readdata : in std_logic_vector (7 downto 0);
+	m_readdata : in std_logic_vector (31 downto 0);
 	m_write : out std_logic;
-	m_writedata : out std_logic_vector (7 downto 0);
+	m_writedata : out std_logic_vector (31 downto 0);
 	m_waitrequest : in std_logic
 );
 end cache;
@@ -36,13 +36,13 @@ architecture arch of cache is
 --Memory:
 --Cache:
 
-type state_type is (ENTRY,DECODE,HIT,MISS);
+type state_type is (ENTRY,DECODE,HIT,MISS,WRITE_TO_MEM,FETCH_FROM_MEM);
 
 --- Cache array
 --- Cache array location: || 2 Flags: Dirty/Valid | 20 Tag | 32 Data ||
 --- 32 blocks leads to array size
 --- 152 bits per location in cache array = 2 bits dirty/valid + 20 bits of tag + 128 bits of data
-type MEM is array (4096 downto 0) of STD_LOGIC_VECTOR(54 downto 0);
+type MEM is array (4096 downto 0) of STD_LOGIC_VECTOR(53 downto 0);
 signal CACHE0 : MEM := (others=>(others=>'0'));
 signal CACHE1 : MEM := (others=>(others=>'1'));
 
@@ -51,23 +51,22 @@ signal current_state: state_type := ENTRY;
 signal next_state: state_type := ENTRY;
 
 
-signal TAG : STD_LOGIC_VECTOR (19 downto 0);
-signal INDEX : STD_LOGIC_VECTOR (11 downto 0);
-signal WRITEDATA : STD_LOGIC_VECTOR(31 downto 0);
+signal TAG : STD_LOGIC_VECTOR (19 downto 0):= (others=>'0');
+signal INDEX : STD_LOGIC_VECTOR (11 downto 0):= (others=>'0');
+signal WRITEDATA : STD_LOGIC_VECTOR(31 downto 0):= (others=>'0');
 
-signal ROW0 : STD_LOGIC_VECTOR(53 downto 0);
-signal TAG0 : STD_LOGIC_VECTOR(19 downto 0);
-signal VALID0 : STD_LOGIC;
-signal DIRTY0 : STD_LOGIC;
+signal ROW0 : STD_LOGIC_VECTOR(53 downto 0):= (others=>'0');
+signal TAG0 : STD_LOGIC_VECTOR(19 downto 0):= (others=>'0');
+signal VALID0 : STD_LOGIC:= '0';
+signal DIRTY0 : STD_LOGIC:= '0';
+signal ROW1 : STD_LOGIC_VECTOR(53 downto 0):= (others=>'0');
+signal TAG1 : STD_LOGIC_VECTOR(19 downto 0):= (others=>'0');
+signal VALID1 : STD_LOGIC:= '0';
+signal DIRTY1 : STD_LOGIC:= '0';
 
-signal ROW1 : STD_LOGIC_VECTOR(53 downto 0);
-signal TAG1 : STD_LOGIC_VECTOR(19 downto 0);
-signal VALID1 : STD_LOGIC;
-signal DIRTY1 : STD_LOGIC;
-
-signal CACHE_EVICT : STD_LOGIC;
-signal CACHE_CONTROL : STD_LOGIC;
-signal HIT_ROW : STD_LOGIC_VECTOR(53 downto 0);
+signal CACHE_EVICT : STD_LOGIC := '0';
+signal CACHE_CONTROL : STD_LOGIC:= '0';
+signal HIT_ROW : STD_LOGIC_VECTOR(53 downto 0):= (others=>'0');
 
 
 begin
@@ -93,9 +92,6 @@ if rising_edge(clock) then
 			m_write <= '0';
 			s_waitrequest <= '0';
 
-			WR_placemark := 0;
-			RD_placemark := 0;
-
 			-- If request, decode.
 			if(s_read = '1' OR s_write = '1') then
 				next_state <= DECODE;
@@ -114,8 +110,8 @@ if rising_edge(clock) then
 			--Determine if hit/miss
 			ROW0 <= CACHE0(to_integer(unsigned(INDEX)));
 			ROW1 <= CACHE1(to_integer(unsigned(INDEX)));
-			TAG0 <= ROW0(TAG_TOP downto TAG_BOTTOM);
-			TAG1 <= ROW1(TAG_TOP downto TAG_BOTTOM);
+			TAG0 <= ROW0(51 downto 32);
+			TAG1 <= ROW1(51 downto 32);
 			VALID0 <= ROW0(53);
 			VALID1 <= ROW1(53);
 			DIRTY0 <= ROW0(52);
@@ -133,87 +129,98 @@ if rising_edge(clock) then
 				next_state <= HIT;
 			-- If neither those, then its a miss
 			else
+				Report "Some silly string";
 				CACHE_EVICT <= ((NOT VALID1) OR (VALID0 AND DIRTY0));
 				next_state <= MISS;
 			end if;
 
 			-- The CPU requested a write to the cache. Must determine if hit or miss
 		when HIT =>
-            		if(s_write = '0' and s_read = '1') then
-                	    s_readdata <= HIT_ROW(31 downto 0);
-            		elsif(s_write = '1' and s_read = '0') then
-                		
-						HIT_ROW(31 downto 0) <= s_writedata;
-               		 	--Set valid and dirty bits
-               			HIT_ROW(53) <= '1'; --Valid
-                		HIT_ROW(52) <= '1'; --Dirty
+            	if(s_write = '0' and s_read = '1') then
+            	    s_readdata <= HIT_ROW(31 downto 0);
+        		elsif(s_write = '1' and s_read = '0') then                		
+					HIT_ROW(31 downto 0) <= s_writedata;
+               		--Set valid and dirty bits
+               		HIT_ROW(53) <= '1'; --Valid
+            		HIT_ROW(52) <= '1'; --Dirty
 
-                		--Return the row to the correct cache
-                		case CACHE_CONTROL is
-							when '0' =>
-								CACHE0(to_integer(unsigned(INDEX))) <= HIT_ROW;
-							when '1' =>
-											CACHE1(to_integer(unsigned(INDEX))) <= HIT_ROW;
-							when others =>
+            		--Return the row to the correct cache
+            		case CACHE_CONTROL is
+						when '0' =>
+							CACHE0(to_integer(unsigned(INDEX))) <= HIT_ROW;
+						when '1' =>
+							CACHE1(to_integer(unsigned(INDEX))) <= HIT_ROW;
+						when others =>
+							next_state <= ENTRY;
+					end case;
+            	end if;
 
-						end case;
-            		end if;
-
-            		next_state <= ENTRY;
+            	next_state <= ENTRY;
 
 
 			-- The CPU requested a write and the item it wanted to write to was in the cache.
 		when MISS =>
-			
-				m_addr <= to_integer(unsigned(s_addr));
-				case CACHE_EVICT is
-					when '0' =>
-						--Write into memory only if Valid and Dirty
-						if(VALID0 = '1' AND DIRTY0 = '1') then
-							m_write <= '1';
-							m_read <= '0';
-							m_writedata <= ROW0(31 downto 0);
-							while (m_waitrequest > '0') loop
-								
-							end loop;
-							m_write <= '0';
-						end if;
-						ROW0(53) <= '1'; --Valid
-						--Read out of Memory
-						m_read <= '1';
-						m_write <= '0';
-						ROW0(31 downto 0) <= m_readdata;
-						while(m_waitrequest>'0') loop
-			
-						end loop;
-						m_read <='0';
-						CACHE0(to_integer(unsigned(INDEX))) <= ROW0;
-						next_state <= HIT;
+			case CACHE_EVICT is
+				when '0' =>
+					if(VALID0 = '1' AND DIRTY0 = '1') then
+						next_state <= WRITE_TO_MEM;
+					else
+						next_state <= FETCH_FROM_MEM;
+					end if;
+				when '1' =>
+					if(VALID1 = '1' AND DIRTY1 = '1') then
+						next_state <= WRITE_TO_MEM;
+					else
+						next_state <= FETCH_FROM_MEM;
+					end if;
+				when others =>
+					next_state <= ENTRY;
+			end case;
 
-					when '1' =>
-						--Write into memory only if Valid and Dirty
-						if(VALID1 = '1' AND DIRTY1 = '1') then
-							m_write <= '1';
-							m_read <= '0';
-							m_writedata <= ROW1(31 downto 0);
-							while (m_waitrequest > '0') loop
-							
-							end loop;
-							m_write <= '0';
-						end if;
-						ROW1(53) <= '1'; --Valid
-						--Read out of Memory
-						m_read <= '1';
-						m_write <= '0';
-						ROW1(31 downto 0) <= m_readdata;
-						while(m_waitrequest>'0') loop
-		
-						end loop;
-						m_read <='0';
-						CACHE1(to_integer(unsigned(INDEX))) <= ROW1;
-						next_state <= HIT;
-					when others=>
-						next_state <= ENTRY;
+		when FETCH_FROM_MEM =>
+			case CACHE_EVICT is
+				when '0' =>
+					m_read <= '1';
+					m_write <= '0';
+					-- while(m_waitrequest > '0') loop
+					-- 	ROW0(31 downto 0) <= m_readdata;
+					-- end loop;
+					m_read <= '0';
+					CACHE0(to_integer(unsigned(INDEX))) <= ROW0;
+					next_state <= HIT;
+				when '1' =>
+					m_read <= '1';
+					m_write <= '0';
+					-- while(m_waitrequest > '0') loop
+					-- 	ROW1(31 downto 0) <= m_readdata;
+					-- end loop;
+					m_read <= '0';
+					CACHE1(to_integer(unsigned(INDEX))) <= ROW1;
+					next_state <= HIT;
+				when others =>
+				next_state <= ENTRY;
+			end case;
+
+		when WRITE_TO_MEM =>
+			case CACHE_EVICT is
+				when '0' =>
+					m_read <= '0';
+					m_write <= '1';
+					-- while(m_waitrequest > '0') loop
+					-- 	m_writedata <= ROW0(31 DOWNTO 0);
+					-- end loop;
+					m_write <= '0';
+					next_state <= FETCH_FROM_MEM;
+				when '1' =>
+					m_read <= '0';
+					m_write <= '1';
+					-- while(m_waitrequest > '0') loop
+					-- 	m_writedata <= ROW1(31 DOWNTO 0);
+					-- end loop;
+					m_write <= '0';
+					next_state <= FETCH_FROM_MEM;
+				when others =>
+					next_state <= ENTRY;
 				end case;
         	end case;
     	end if;
