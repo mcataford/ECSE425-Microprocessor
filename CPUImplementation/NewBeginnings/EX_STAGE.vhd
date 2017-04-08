@@ -19,7 +19,7 @@ entity EX_STAGE is
 		
 		--OUTPUT
 		--Results
-		R: out std_logic_vector(63 downto 0)
+		R: out std_logic_vector(63 downto 0) := (others => 'Z')
 	);
 	
 end entity;

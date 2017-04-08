@@ -42,9 +42,10 @@ architecture ID_EX_REG_Impl of ID_EX_REG is
 
 begin
 
-	REG_BEHAVIOUR: process(ID_PC)
+	REG_BEHAVIOUR: process(ID_REG_A)
 	
-		variable REG_PC, REG_REG_A, REG_REG_B, REG_IMM: std_logic_vector(31 downto 0);
+		variable REG_PC, REG_REG_B, REG_IMM: std_logic_vector(31 downto 0):= (others => 'Z');
+		variable REG_REG_A: std_logic_vector(31 downto 0) := (others => 'Z');
 		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 		variable REG_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => 'Z');
 	
@@ -63,6 +64,8 @@ begin
 			REG_REG_B := ID_REG_B;
 			REG_IMM := ID_IMMEDIATE;
 			REG_CONTROL_VECTOR := ID_CONTROL_VECTOR;
+			
+
 	
 	end process;
 
