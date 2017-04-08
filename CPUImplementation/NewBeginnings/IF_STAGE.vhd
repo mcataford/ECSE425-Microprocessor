@@ -1,3 +1,11 @@
+-- ECSE425 CPU Pipeline mark II
+--
+-- Instruction fetch stage
+--
+-- Author: Marc Cataford
+-- Last modified: 7/4/2017
+
+
 library IEEE;
 
 use ieee.std_logic_1164.all;
@@ -120,6 +128,9 @@ begin
 		
 			case CURRENT_STATE is
 			
+				--State 0:
+				--Generate new PC candidate
+				--Send request to instr. memory for the next word.
 				when 0 =>
 					PC_INCREMENT := PC_REG + 1;
 					
@@ -128,11 +139,18 @@ begin
 					
 					NEXT_STATE := 1;
 					
-					report "IF: FSM S1 - Memory request sent.";
+					report "IF: FSM S0 - Memory request sent.";
 					
+				--State 1:
+				--If memory request fulfilled, post output and reset to S0.
+				--If end-of-program reached, lock IF stage.
+				--Else, poll again next cycle.
 				when 1 =>
+				
+					--If instr. memory not busy anymore.
 					if IR_MEMSTALL = '0' then
 					
+						--End of program catch
 						if IR_OUT = UNDEF then
 						
 							EOP := true;
@@ -142,6 +160,7 @@ begin
 							
 							report "IF: FSM S2 - End of program. Stopping feed.";
 						
+						--Valid instr. fetched, post.
 						else
 							INSTR <= IR_OUT;
 							
@@ -153,14 +172,15 @@ begin
 								PC_OUT <= ALU_PC;
 							end if;
 							
+							--Reset parameters.
 							IR_MEMREAD <= '0';
-							
 							NEXT_STATE := 0;
 							
 							report "IF: FSM S2 - Memory request fulfilled. Posted output.";
 							
 						end if;
 						
+					--Stall while waiting for instr. mem.
 					else
 					
 						report "IF: FSM S2 - Waiting on request fulfillment.";
@@ -169,6 +189,7 @@ begin
 					
 				when 2 =>
 					
+					--Nop, stage locked since no more instructions to push through.
 					
 					
 			end case;
