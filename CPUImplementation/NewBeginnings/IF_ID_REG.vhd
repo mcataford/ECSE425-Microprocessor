@@ -36,17 +36,19 @@ architecture IF_ID_REG_Impl of IF_ID_REG is
 
 begin
 
-	REG_BEHAVIOUR: process(CLOCK)
+	REG_BEHAVIOUR: process(IF_PC)
+	
+		variable REG_PC: integer := 0;
+		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => '0');
 	
 	begin
 	
-		if rising_edge(CLOCK) and RESET = '0' then
-		
-			ID_PC <= IF_PC;
-			ID_INSTR <= IF_INSTR;
-		
-		end if;
-	
+			ID_PC <= REG_PC;
+			ID_INSTR <= REG_INSTR;
+			
+			REG_PC := IF_PC;
+			REG_INSTR := IF_INSTR;
+
 	end process;
 
 end architecture;
