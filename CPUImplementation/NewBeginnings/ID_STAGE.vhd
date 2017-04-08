@@ -79,7 +79,7 @@ begin
 		CONTROL_VECTOR_INTERNAL
 	);
 
-	STAGE_BEHAVIOUR: process(CLOCK)
+	STAGE_BEHAVIOUR: process(INSTR,CLOCK)
 	
 		variable uOPCODE, uFUNCT: unsigned(5 downto 0);
 		
@@ -87,13 +87,12 @@ begin
 		variable ONE_EXT: std_logic_vector(15 downto 0) := (others => '0');
 		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
 		
-	
 	begin
+	
 	
 		if now >= 1 ps and not(INSTR = UNDEF) then
 			
 			--Parsing the instruction word.
-			
 			OPCODE <= INSTR(31 downto 26);
 			RS <= INSTR(25 downto 21);
 			RT <= INSTR(20 downto 16);
@@ -139,8 +138,6 @@ begin
 				CONTROL_VECTOR <= (others => '0');
 				
 		end if;
-		
-
 
 	end process;
 	

@@ -63,14 +63,34 @@ begin
 		R2
 	);
 	
-	--ALU input multiplexers
-	--(1): ALUSrc
-	--(8): PCSrc
-	--See ID_CONTROL_UNIT.vhd for details
+	-- STAGE_BEHAVIOUR: process(PC)
 	
-	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else
-						PC;
-	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else
-						Imm;
+	-- begin
+	
+		-- --ALU input multiplexers
+		-- --(1): ALUSrc
+		-- --(8): PCSrc
+		-- --See ID_CONTROL_UNIT.vhd for details
+		
+		-- if CONTROL_VECTOR(7) = '0' then
+			-- OPERAND_A <= A;
+		-- else
+			-- OPERAND_A <= PC;
+		-- end if;
+		
+		-- if CONTROL_VECTOR(1) = '0' then
+			-- OPERAND_B <= B;
+		-- else
+			-- OPERAND_B <= Imm;
+		-- end if;
+			
+	
+	-- end process;
+	
+	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else PC;
+	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else Imm;
+	
+
+	
 
 end architecture;

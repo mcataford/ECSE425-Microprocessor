@@ -1,3 +1,10 @@
+-- ECSE425 CPU Pipeline mark II
+--
+-- IF-ID interstage register
+--
+-- Author: Marc Cataford
+-- Last modified: 7/4/2017
+
 library IEEE;
 
 use ieee.std_logic_1164.all;
