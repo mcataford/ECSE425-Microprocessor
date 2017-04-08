@@ -50,7 +50,7 @@ BEGIN
 
 		variable line_content : string(32 downto 1);
 		variable line_num : line;
-		variable line_count : integer := 1;
+		variable line_count : integer := 0;
 		variable INSTR_WRITE : string (32 downto 1);
 		variable MEM_LOOKUP : std_logic_vector(31 downto 0);
 		variable INSTR_READ : std_logic_vector(31 downto 0);
@@ -70,9 +70,7 @@ BEGIN
 				report "Memory initialized at ZERO";
 				
 			else  
-			
-				ram_block(line_count-1) <= (others => 'U');
-			
+		
 				--Populating memory with the contents of the input file.
 			
 				file_open(file_input,file_in,READ_MODE); 

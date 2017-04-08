@@ -1,6 +1,7 @@
 library IEEE;
 
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity CPU is
 	port(
@@ -20,23 +21,29 @@ architecture CPU_Impl of CPU is
 	
 	--IF stage specific
 	signal IF_PC_RESET, IF_PC_SELECT: std_logic := '0';
-	signal IF_PC_ALU, IF_PC: integer range 0 to PC_MAX-1 := 0;
+	signal IF_PC_ALU, IF_PC: std_logic_vector(31 downto 0) := (others => '0');
 	signal IF_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	
 	--ID stage specific
-	signal ID_PC: integer range 0 to PC_MAX-1 := 0;
-	signal ID_REG_A,ID_REG_B,ID_IMMEDIATE,ID_WB_DATA: integer := 0;
+	signal ID_PC: std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_REG_A,ID_REG_B,ID_IMMEDIATE,ID_WB_DATA: std_logic_vector(31 downto 0) := (others => '0');
 	signal ID_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
-	signal ID_WB_SRC: integer range 0 to REG_COUNT-1 := 0;
+	signal ID_WB_SRC: std_logic_vector(31 downto 0) := (others => '0');
 	signal ID_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
 
 	--EX stage specific
-	signal EX_PC: integer range 0 to PC_MAX-1 := 0;
-	signal EX_REG_A,EX_REG_B,EX_IMMEDIATE: integer := 0;
+	signal EX_PC: std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_REG_A,EX_REG_B,EX_IMMEDIATE: std_logic_vector(31 downto 0) := (others => '0');
 	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal EX_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
-	signal EX_R1,EX_R2: integer := 0;
-
+	signal EX_R: std_logic_vector(63 downto 0) := (others => '0');
+	
+	--MEM stage specific
+	signal MEM_PC: std_logic_vector(31 downto 0) := (others => '0');
+	signal MEM_R: std_logic_vector(63 downto 0) := (others => '0');
+	signal MEM_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+	signal MEM_B_FW: std_logic_vector(31 downto 0) := (others => '0');
+	signal MEM_CONTROL_VECTOR: std_logic_vector(7 downto 0) :=(others => '0');
 
 	--Stage components
 	
@@ -51,11 +58,11 @@ architecture CPU_Impl of CPU is
 		--PC MUX select signal
 		PC_SEL: in std_logic;
 		--Feedback from ALU for PC calc.
-		ALU_PC: in integer range 0 to PC_MAX;
+		ALU_PC: in std_logic_vector(31 downto 0);
 		
 		--OUTPUT
 		--PC output
-		PC_OUT: out integer range 0 to PC_MAX;
+		PC_OUT: out std_logic_vector(31 downto 0);
 		--Fetched instruction
 		INSTR: out std_logic_vector(31 downto 0)
 		);
@@ -71,17 +78,17 @@ architecture CPU_Impl of CPU is
 			--Instruction
 			INSTR: in std_logic_vector(31 downto 0);
 			--Writeback source
-			WB_SRC: in integer range 0 to REG_COUNT-1;
+			WB_SRC: in std_logic_vector(31 downto 0);
 			--Writeback data
-			WB_DATA: in integer;
+			WB_DATA: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--Register A
-			REG_A: out integer;
+			REG_A: out std_logic_vector(31 downto 0) := (others => '0');
 			--Register B
-			REG_B: out integer;
+			REG_B: out std_logic_vector(31 downto 0) := (others => '0');
 			--Sign-extended immediate
-			IMMEDIATE: out integer;
+			IMMEDIATE: out std_logic_vector(31 downto 0) := (others => '0');
 			--Control signals
 			CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 		);
@@ -93,11 +100,11 @@ architecture CPU_Impl of CPU is
 		port (
 			--INPUT
 			--Program counter
-			PC: in integer range 0 to 1023;
+			PC: in std_logic_vector(31 downto 0) := (others => '0');
 			--Operands
-			A: in integer;
-			B: in integer;
-			Imm: in integer;
+			A: in std_logic_vector(31 downto 0) := (others => '0');
+			B: in std_logic_vector(31 downto 0) := (others => '0');
+			Imm: in std_logic_vector(31 downto 0) := (others => '0');
 			--Control signals
 			CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 			--Instruction
@@ -105,8 +112,7 @@ architecture CPU_Impl of CPU is
 			
 			--OUTPUT
 			--Results
-			R1: out integer;
-			R2: out integer
+			R: out std_logic_vector(63 downto 0) := (others => '0')
 		);
 	
 	end component;
@@ -122,13 +128,13 @@ architecture CPU_Impl of CPU is
 			--Reset
 			RESET: in std_logic;
 			--Program counter
-			IF_PC: in integer range 0 to 1023;
+			IF_PC: in std_logic_vector(31 downto 0);
 			--Instruction
 			IF_INSTR: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--Program counter
-			ID_PC: out integer range 0 to 1023;
+			ID_PC: out std_logic_vector(31 downto 0) := (others => '0');
 			--Instruction
 			ID_INSTR: out std_logic_vector(31 downto 0)
 		);
@@ -143,28 +149,56 @@ architecture CPU_Impl of CPU is
 			--Reset
 			RESET: in std_logic;
 			--Program counter
-			ID_PC: in integer range 0 to 1023;
+			ID_PC: in std_logic_vector(31 downto 0);
 			--Instruction
 			ID_INSTR: in std_logic_vector(31 downto 0);
 			--Register values
-			ID_REG_A: in integer;
-			ID_REG_B: in integer;
+			ID_REG_A: in std_logic_vector(31 downto 0);
+			ID_REG_B: in std_logic_vector(31 downto 0);
 			--Immediate
-			ID_IMMEDIATE: in integer;
+			ID_IMMEDIATE: in std_logic_vector(31 downto 0);
 			--Control signals
 			ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 			
 			--OUTPUT
-			EX_PC: out integer range 0 to 1023;
+			EX_PC: out std_logic_vector(31 downto 0);
 			--Instruction
 			EX_INSTR: out std_logic_vector(31 downto 0);
 			--Register values
-			EX_REG_A: out integer;
-			EX_REG_B: out integer;
+			EX_REG_A: out std_logic_vector(31 downto 0);
+			EX_REG_B: out std_logic_vector(31 downto 0);
 			--Immediate
-			EX_IMMEDIATE: out integer;
+			EX_IMMEDIATE: out std_logic_vector(31 downto 0);
 			--Control signals
 			EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		);
+	
+	end component;
+	
+	component EX_MEM_REG
+	
+		port(
+			--INPUT
+			--Clock signal
+			CLOCK: in std_logic;
+			--Results
+			EX_R: in std_logic_vector(63 downto 0);
+			--Operand B forwarding
+			EX_B_FW: in std_logic_vector(31 downto 0) := (others => '0');
+			--Instruction
+			EX_INSTR: in std_logic_vector(31 downto 0);
+			--Control signals
+			EX_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			
+			--OUTPUT
+			--Results
+			MEM_R: out std_logic_vector(63 downto 0);
+			--Operand B forwarding
+			MEM_B_FW: out std_logic_vector(31 downto 0);
+			--Instruction
+			MEM_INSTR: out std_logic_vector(31 downto 0);
+			--Control signals
+			MEM_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
 		);
 	
 	end component;
@@ -239,7 +273,7 @@ begin
 		--Reset
 		RESET,
 		--Program counter
-		ID_PC,
+		IF_PC,
 		--Instruction
 		ID_INSTR,
 		--Register values
@@ -279,8 +313,32 @@ begin
 		
 		--OUTPUT
 		--Results
-		EX_R1,
-		EX_R2
+		EX_R
+	);
+	
+	EX_MEM_R: EX_MEM_REG port map(
+		--INPUT
+		--Clock signal
+		CLOCK,
+		--Results
+		EX_R,
+		--Operand B forwarding
+		EX_REG_B,
+		--Instruction
+		EX_INSTR,
+		--Control signals
+		EX_CONTROL_VECTOR,
+		
+		--OUTPUT
+		--Results
+		MEM_R,
+		--Operand B forwarding
+		MEM_B_FW,
+		--Instruction
+		MEM_INSTR,
+		--Control signals
+		MEM_CONTROL_VECTOR
+	
 	);
 
 end architecture;

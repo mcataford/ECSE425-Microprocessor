@@ -57,9 +57,9 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
  	signal m_addr_i : integer range 0 to (icache_size*8*8-1);
  	signal m_addr_d : integer range 0 to (dcache_size*8*8-1);
 	signal m_read_i, m_read_d : std_logic;
-	signal m_readdata_i, m_readdata_d : std_logic_vector (7 downto 0);
+	signal m_readdata_i, m_readdata_d : std_logic_vector (31 downto 0);
 	signal m_write_i, m_write_d : std_logic;
-	signal m_writedata_i, m_writedata_d : std_logic_vector (7 downto 0);
+	signal m_writedata_i, m_writedata_d : std_logic_vector (31 downto 0);
 	signal m_waitrequest_i, m_waitrequest_d : std_logic;
 	
 	component Cache_DirectMapped
@@ -76,9 +76,9 @@ architecture MICROPROCESSOR_Impl of MICROPROCESSOR is
     
 	    m_addr : out integer range 0 to (icache_size*8*8)-1;
 	    m_read : out std_logic;
-	    m_readdata : in std_logic_vector (7 downto 0);
+	    m_readdata : in std_logic_vector (31 downto 0);
 	    m_write : out std_logic;
-	    m_writedata : out std_logic_vector (7 downto 0);
+	    m_writedata : out std_logic_vector (31 downto 0);
 	    m_waitrequest : in std_logic
 );
   end component;
