@@ -181,6 +181,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			EX_PC: in std_logic_vector(31 downto 0);
 			--Results
 			EX_R: in std_logic_vector(63 downto 0);
 			--Operand B forwarding
@@ -191,6 +192,7 @@ architecture CPU_Impl of CPU is
 			EX_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 			
 			--OUTPUT
+			MEM_PC: out std_logic_vector(31 downto 0);
 			--Results
 			MEM_R: out std_logic_vector(63 downto 0);
 			--Operand B forwarding
@@ -273,7 +275,7 @@ begin
 		--Reset
 		RESET,
 		--Program counter
-		IF_PC,
+		ID_PC,
 		--Instruction
 		ID_INSTR,
 		--Register values
@@ -320,6 +322,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		EX_PC,
 		--Results
 		EX_R,
 		--Operand B forwarding
@@ -330,6 +333,7 @@ begin
 		EX_CONTROL_VECTOR,
 		
 		--OUTPUT
+		MEM_PC,
 		--Results
 		MEM_R,
 		--Operand B forwarding

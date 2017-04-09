@@ -16,7 +16,7 @@ entity ALU is
 		
 		--OUTPUT
 		--Results
-		R: out std_logic_vector(63 downto 0)
+		R: out std_logic_vector(63 downto 0) := (others => 'Z')
 	);
 	
 end entity;
@@ -48,8 +48,6 @@ begin
 			uA := unsigned(A);
 			uB := unsigned(B);
 			SHAMT := to_integer(unsigned(INSTR(10 downto 6)));
-			
-
 			
 			--Processing instruction per OPCODE & FUNCT segments.
 			
@@ -119,7 +117,7 @@ begin
 		
 			--If the instruction is undefined, zero out the output.
 		
-			R <= (others => '0');
+			R <= (others => 'Z');
 			
 		end if;
 		
