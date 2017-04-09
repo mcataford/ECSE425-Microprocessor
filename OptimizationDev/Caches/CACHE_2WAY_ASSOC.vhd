@@ -153,7 +153,7 @@ begin
 					IS_HIT <= "11";
 					next_state <= HIT;
 				-- If neither those, then its a miss
-				elsif(s_write = '1') then
+				elsif(s_write = '1' AND (VALID0 = '0' OR VALID1 = '0')) then
 					IS_HIT <= "00";
 					next_state <= HIT;
 				else
