@@ -38,7 +38,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 	
 	--Register file
 	type REGISTER_FILE is array (REG_COUNT_MAX-1 downto 0) of std_logic_vector(31 downto 0);
-	signal REG: REGISTER_FILE := (others => (others => '0'));
+	signal REG: REGISTER_FILE := (others => (others => '1'));
 	
 	--Subcomponent instantiation
 	
@@ -82,9 +82,11 @@ begin
 	
 		if rising_edge(CLOCK) then
 		
-		
+			--Write back to register here
+
+				
 		elsif falling_edge(CLOCK) then
-		
+				
 				if INSTR /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" then
 				
 					REG_A <= REG(to_integer(unsigned(INSTR(25 downto 21))));
