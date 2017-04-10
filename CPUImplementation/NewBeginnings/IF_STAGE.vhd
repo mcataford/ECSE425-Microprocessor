@@ -3,7 +3,7 @@
 -- Instruction fetch stage
 --
 -- Author: Marc Cataford
--- Last modified: 8/4/2017
+-- Last modified: 10/4/2017
 
 
 library IEEE;
@@ -37,11 +37,8 @@ architecture IF_STAGE_Impl of IF_STAGE is
 
 	--Intermediate signals and constants
 	
-	--Stage constants
-	constant PC_MAX: integer := 1024;
-	
 	--Instruction memory addr.
-	signal IR_ADDR: integer range 0 to PC_MAX-1;
+	signal IR_ADDR: integer range 0 to 1023;
 	
 	--Fetched instruction.
 	signal IR_OUT: std_logic_vector(31 downto 0) := (others => '0');
@@ -50,7 +47,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	signal IR_MEMSTALL: std_logic;
 	
 	--Program counter memory.
-	signal PC_REG: std_logic_vector(31 downto 0) := (others => '0');
+	signal PC_REG,PC_INC: std_logic_vector(31 downto 0) := (others => '0');
 	
 	--Memory read allow
 	signal IR_MEMREAD: std_logic := '0';
@@ -62,8 +59,8 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	component memory is
 	
 		GENERIC(
-		ram_size : INTEGER := PC_MAX;
-		mem_delay : time := 2 ns;
+		ram_size : INTEGER := 8192;
+		mem_delay : time := 1 ns;
 		clock_period : time := 1 ns;
 		from_file : boolean := true;		
 		file_in : string := "program.txt";
@@ -104,107 +101,35 @@ begin
 		--Stall signal
 		IR_MEMSTALL		
 	);
-	
-	FSM: process(CLOCK)
-	
-		--State variables
-		variable CURRENT_STATE: integer range 0 to 1 := 0;
-		variable NEXT_STATE: integer range 0 to 1 := 0;
-		
-		--Temporary PC buffer
-		variable PC_INCREMENT: std_logic_vector(31 downto 0) := (others => '0');
-		
-		--End-of-program flag
-		variable EOP: boolean := false;
-		
-		--Predefined patterns for comparison
-		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
+					
+	STAGE_BEHAVIOUR: process(CLOCK)
 	
 	begin
 	
-		if rising_edge(CLOCK) then
+		if RESET = '1' then
 		
-			--State switch.
-			CURRENT_STATE := NEXT_STATE;
+			PC_REG <= x"00000000";
+	
+		elsif rising_edge(CLOCK) then
 		
-			--State actions
-			case CURRENT_STATE is
+			if IR_MEMREAD <= '0' then
+		
+				IR_MEMREAD <= '1';
+				IR_ADDR <= to_integer(unsigned(PC_REG));
+				PC_INC <= std_logic_vector(unsigned(PC_REG)+1);
 			
-				--State 0:
-				--Increment PC
-				--Send request to memory
-				when 0 =>
-					--Increment the PC
-					PC_INCREMENT := std_logic_vector(unsigned(PC_REG) + 1);
-					
-					--If the program isn't done yet, make a request
-					if not EOP then
-					
-						IR_ADDR <= to_integer(unsigned(PC_REG));			
-						
-					--Else, request a placeholder address.
-					else
-						IR_ADDR <= 0;
-						
-					end if;
-					
-					--Set up the memory request
-					IR_MEMREAD <= '1';
-					
-					--Point to next state.
-					NEXT_STATE := 1;
-					
-					report "IF: FSM S0 - Memory request sent.";
-					
-				--State 1:
-				--If memory request fulfilled, post output and reset to S0.
-				--If end-of-program reached, lock IF stage.
-				--Else, poll again next cycle.
-				when 1 =>
-				
-					--If instr. memory not busy anymore.
-					if IR_MEMSTALL = '0' then
-					
-						--End of program catch
-						if IR_OUT = UNDEF or EOP then
-						
-							--In this case, we ignore the instruction and set Z instead.
-							EOP := true;
-							INSTR <= (others => 'Z');
-							
-							report "IF: FSM S2 - End of program. Stopping feed.";
-						
-						--Valid instr. fetched, post.
-						else
-							INSTR <= IR_OUT;
-							
-							report "IF: FSM S2 - Memory request fulfilled. Posted output.";
-							
-						end if;
-						
-						--Update the PC accumulator.
-						if PC_SEL = '0' then
-							PC_REG <= PC_INCREMENT;
-							PC_OUT <= PC_INCREMENT;
-						else
-							PC_REG <= ALU_PC;
-							PC_OUT <= ALU_PC;
-						end if; 
-						
-						--Reset MEMREAD
-						IR_MEMREAD <= '0';
-						
-						--Back to initial state.
-						NEXT_STATE := 0;
-						
-					--Stall while waiting for instr. mem.
-					else
-					
-						report "IF: FSM S2 - Waiting on request fulfillment.";
-						
-					end if;
-					
-			end case;
+			end if;
+			
+		elsif falling_edge(CLOCK) then
+		
+			if IR_MEMSTALL = '0' then
+			
+				IR_MEMREAD <= '0';
+				INSTR <= IR_OUT;
+				PC_OUT <= PC_INC;
+				PC_REG <= PC_INC;
+			
+			end if;
 		
 		end if;
 	
