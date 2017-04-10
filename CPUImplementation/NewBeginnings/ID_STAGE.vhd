@@ -78,12 +78,16 @@ begin
 	
 	REGISTER_BEHAVIOUR: process(CLOCK)
 	
+		variable OPCODE,FUNCT: unsigned(5 downto 0);
+	
 	begin
+	
+		OPCODE := unsigned(INSTR(31 downto 26));
+		FUNCT := unsigned(INSTR(5 downto 0));
 	
 		if rising_edge(CLOCK) then
 		
 			--Write back to register here
-
 				
 		elsif falling_edge(CLOCK) then
 				
@@ -92,11 +96,18 @@ begin
 					REG_A <= REG(to_integer(unsigned(INSTR(25 downto 21))));
 					REG_B <= REG(to_integer(unsigned(INSTR(20 downto 16))));
 					
+					if OPCODE = 12 or OPCODE = 13 or OPCODE = 14 then
+						IMMEDIATE <= x"0000" & INSTR(15 downto 0);
+					elsif OPCODE = 8 or OPCODE = 10 or OPCODE = 35 or OPCODE = 43 then
+						IMMEDIATE(31 downto 16) <= (others => INSTR(15));
+						IMMEDIATE(15 downto 0) <= INSTR(15 downto 0);
+					end if;
+					--TODO: Add branch padding.
+					
 				end if;
 				
 		end if;
 	
 	end process;
-	
 
 end architecture;
