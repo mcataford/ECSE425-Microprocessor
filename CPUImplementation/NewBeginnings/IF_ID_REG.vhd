@@ -34,20 +34,25 @@ end entity;
 
 architecture IF_ID_REG_Impl of IF_ID_REG is
 
+	signal REG_PC, REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
+
 begin
 
-	REG_BEHAVIOUR: process(IF_PC)
-	
-		variable REG_PC: std_logic_vector(31 downto 0);
-		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
+	REG_BEHAVIOUR: process(CLOCK)
 	
 	begin
 	
-			ID_PC <= REG_PC;
-			ID_INSTR <= REG_INSTR;
+			if rising_edge(CLOCK) then
 			
-			REG_PC := IF_PC;
-			REG_INSTR := IF_INSTR;
+				REG_PC <= IF_PC;
+				REG_INSTR <= IF_INSTR;
+			
+			elsif falling_edge(CLOCK) then
+			
+				ID_PC <= REG_PC;
+				ID_INSTR <= REG_INSTR;
+			
+			end if;
 
 	end process;
 
