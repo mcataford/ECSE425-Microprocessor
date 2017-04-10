@@ -26,7 +26,8 @@ end entity;
 
 architecture EX_STAGE_Impl of EX_STAGE is
 
-	signal OPERAND_A, OPERAND_B: std_logic_vector(31 downto 0);
+	signal OPERAND_A, OPERAND_B,R32: std_logic_vector(31 downto 0);
+	signal ALU_OUT: std_logic_vector(63 downto 0);
 
 	component ALU
 		port(
@@ -59,10 +60,12 @@ begin
 		
 		--OUTPUT
 		--Results
-		R
+		ALU_OUT
 	);
 	
 	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else PC;
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else Imm;
-
+	R <= ALU_OUT;
+	R32 <=ALU_OUT(31 downto 0);
+	
 end architecture;

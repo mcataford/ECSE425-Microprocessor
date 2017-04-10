@@ -25,102 +25,63 @@ end entity;
 
 architecture ALU_Impl of ALU is
 
+signal test: std_logic_vector(31 downto 0);
+
 begin
 
 	ALU_BEHAVIOUR: process(A,B,INSTR)
 	
-		--Unsigned conversions and buffers.
-
-		variable uOP,uFU: unsigned(5 downto 0);
-		variable SHAMT: integer;
-		
-		variable uA, uB: unsigned(31 downto 0);
-		variable uR: unsigned(63 downto 0);
-		
-		variable UNDEF: std_logic_vector(31 downto 0) := (others => 'Z');
-	
 	begin
 	
-		if not (INSTR = UNDEF) then
-	
-			--Populating buffers and conversions.
+		if INSTR /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" then
 			
-			uOP := unsigned(INSTR(31 downto 26));
-			uFU := unsigned(INSTR(5 downto 0));
-			uA := unsigned(A);
-			uB := unsigned(B);
-			SHAMT := to_integer(unsigned(INSTR(10 downto 6)));
+			case ALUOP is
 			
-			--Processing instruction per OPCODE & FUNCT segments.
-			
-			--ADD, ADDI
-			if uOP = 8 or uFU = 32 then
-				uR := to_unsigned(0,32) & (uA + uB);
-			
-			--SUB
-			elsif uFU = 34 then
-				uR := to_unsigned(0,32) & uA - uB;
-			
-			--MULT
-			elsif uFU = 24 then
-				uR := uA * uB;
+				when x"0" =>
+					R <= x"00000000" & std_logic_vector(to_signed(to_integer(signed(A)) + to_integer(signed(B)),32));
 				
-			--DIV
-			elsif uFU = 26 and not(uB = 0) then
-				uR(63 downto 32) := uA / uB;
-				uR(31 downto 0) := uA mod uB;
+				when x"1" =>
+					R <= x"00000000" & std_logic_vector(to_signed(to_integer(signed(A)) - to_integer(signed(B)),32));
+					
+				when x"2" =>
+					R <= std_logic_vector(to_signed(to_integer(signed(A)) * to_integer(signed(B)),64));
+					
+				when x"3" =>
+					R(63 downto 32) <= std_logic_vector(to_signed(to_integer(signed(A)) / to_integer(signed(B)),32));
+					R(31 downto 0) <= std_logic_vector(to_signed(to_integer(signed(A)) mod to_integer(signed(B)),32));
 				
-			--AND, ANDI
-			elsif uFU = 36 or uOP = 12 then
-				uR := to_unsigned(0,32) & (uA and uB);
-
-				
-			--OR, ORI
-			elsif uFU = 37 or uOP = 13 then
-				uR := to_unsigned(0,32) & (uA or uB);
-				
-			--XOR, XORI
-			elsif uFU = 38 or uOP = 14 then
-				uR := to_unsigned(0,32) & (uA xor uB);
-				
-			--NOR
-			elsif uFU = 39 then
-				uR := to_unsigned(0,32) & (uA nor uB);
-				
-			--SLT, SLTI
-			elsif uFU = 42 or uOP = 10 then
-				if A < B then
-					uR := to_unsigned(1,64);
-				else
-					uR := to_unsigned(0,64);
-				end if;
+				when x"4" => 
+					R <= x"00000000" & (A and B);
+					
+				when x"5" =>
+					R <= x"00000000" & (A or B);
+					
+				when x"6" =>
+					R <= x"00000000" & (A xor B);
+					
+				when x"7" =>
+					R <= x"00000000" & (A nor B);
+					
+				when x"8" =>
+					if(to_integer(signed(A)) < to_integer(signed(B))) then
+						R(0) <= '1';
+						R(63 downto 1) <= (others => '0');
+					else
+						R <= (others => '0');
+					end if;
+					
+				when x"9" =>
+					R <= x"00000000" & std_logic_vector((unsigned(A) sll to_integer(signed(INSTR(10 downto 6)))));
 			
-			--SLL
-			elsif uFU = 0 and uOP = 0 then
-				uR := to_unsigned(0,32) & (uA sll SHAMT);
-							
-			--SRL
-			elsif uFU = 2 then
-				uR := to_unsigned(0,32) & (uA srl SHAMT);
-				
-			--SRA
-			elsif uFU = 3 then
-				uR := to_unsigned(0,32) & (uA srl SHAMT);
-				
-				for offset in 0 to SHAMT-1 loop
-					uR(31-offset) := uA(31);			
-				end loop;
-			
-			end if;
-			
-			R <= std_logic_vector(uR);
-			
-		else
+				when x"A" =>
+					R <= x"00000000" & std_logic_vector((unsigned(A) srl to_integer(signed(INSTR(10 downto 6)))));
+					
+					
+				when others =>
+					R <= (others => 'Z');
 		
-			--If the instruction is undefined, zero out the output.
+			end case;
 		
-			R <= (others => 'Z');
-			
 		end if;
 		
 	end process;
