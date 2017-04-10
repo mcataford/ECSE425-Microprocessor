@@ -13,7 +13,7 @@ entity EX_STAGE is
 		B: in std_logic_vector(31 downto 0);
 		Imm: in std_logic_vector(31 downto 0);
 		--Control signals
-		CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+		CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 		--Instruction
 		INSTR: in std_logic_vector(31 downto 0);
 		
@@ -37,6 +37,8 @@ architecture EX_STAGE_Impl of EX_STAGE is
 			B: in std_logic_vector(31 downto 0);
 			--Instruction
 			INSTR: in std_logic_vector(31 downto 0);
+			--ALUop
+			ALUOP: in std_logic_vector(3 downto 0);
 			
 			--OUTPUT
 			--Results
@@ -53,6 +55,7 @@ begin
 		OPERAND_B,
 		--Instruction
 		INSTR,
+		CONTROL_VECTOR(11 downto 8),
 		
 		--OUTPUT
 		--Results

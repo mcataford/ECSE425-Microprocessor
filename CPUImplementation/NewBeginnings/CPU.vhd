@@ -29,13 +29,13 @@ architecture CPU_Impl of CPU is
 	signal ID_REG_A,ID_REG_B,ID_IMMEDIATE,ID_WB_DATA: std_logic_vector(31 downto 0) := (others => '0');
 	signal ID_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal ID_WB_SRC: std_logic_vector(31 downto 0) := (others => '0');
-	signal ID_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
+	signal ID_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 
 	--EX stage specific
 	signal EX_PC: std_logic_vector(31 downto 0) := (others => '0');
 	signal EX_REG_A,EX_REG_B,EX_IMMEDIATE: std_logic_vector(31 downto 0) := (others => '0');
 	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
-	signal EX_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => '0');
+	signal EX_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 	signal EX_R: std_logic_vector(63 downto 0) := (others => '0');
 	
 	--MEM stage specific
@@ -43,7 +43,7 @@ architecture CPU_Impl of CPU is
 	signal MEM_R: std_logic_vector(63 downto 0) := (others => '0');
 	signal MEM_INSTR: std_logic_vector(31 downto 0) := (others => '0');
 	signal MEM_B_FW: std_logic_vector(31 downto 0) := (others => '0');
-	signal MEM_CONTROL_VECTOR: std_logic_vector(7 downto 0) :=(others => '0');
+	signal MEM_CONTROL_VECTOR: std_logic_vector(11 downto 0) :=(others => '0');
 
 	--Stage components
 	
@@ -90,7 +90,7 @@ architecture CPU_Impl of CPU is
 			--Sign-extended immediate
 			IMMEDIATE: out std_logic_vector(31 downto 0) := (others => '0');
 			--Control signals
-			CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 		);
 	
 	end component;
@@ -106,7 +106,7 @@ architecture CPU_Impl of CPU is
 			B: in std_logic_vector(31 downto 0) := (others => '0');
 			Imm: in std_logic_vector(31 downto 0) := (others => '0');
 			--Control signals
-			CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			--Instruction
 			INSTR: in std_logic_vector(31 downto 0);
 			
@@ -158,7 +158,7 @@ architecture CPU_Impl of CPU is
 			--Immediate
 			ID_IMMEDIATE: in std_logic_vector(31 downto 0);
 			--Control signals
-			ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			ID_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			
 			--OUTPUT
 			EX_PC: out std_logic_vector(31 downto 0);
@@ -170,7 +170,7 @@ architecture CPU_Impl of CPU is
 			--Immediate
 			EX_IMMEDIATE: out std_logic_vector(31 downto 0);
 			--Control signals
-			EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			EX_CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 		);
 	
 	end component;
@@ -181,6 +181,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			RESET: in std_logic;
 			EX_PC: in std_logic_vector(31 downto 0);
 			--Results
 			EX_R: in std_logic_vector(63 downto 0);
@@ -189,7 +190,7 @@ architecture CPU_Impl of CPU is
 			--Instruction
 			EX_INSTR: in std_logic_vector(31 downto 0);
 			--Control signals
-			EX_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+			EX_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			
 			--OUTPUT
 			MEM_PC: out std_logic_vector(31 downto 0);
@@ -200,7 +201,7 @@ architecture CPU_Impl of CPU is
 			--Instruction
 			MEM_INSTR: out std_logic_vector(31 downto 0);
 			--Control signals
-			MEM_CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			MEM_CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 		);
 	
 	end component;
@@ -322,6 +323,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		RESET,
 		EX_PC,
 		--Results
 		EX_R,

@@ -13,6 +13,8 @@ entity ALU is
 		B: in std_logic_vector(31 downto 0);
 		--Instruction
 		INSTR: in std_logic_vector(31 downto 0);
+		--ALUop
+		ALUOP: in std_logic_vector(3 downto 0);
 		
 		--OUTPUT
 		--Results

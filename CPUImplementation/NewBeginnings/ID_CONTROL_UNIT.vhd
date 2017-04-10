@@ -14,7 +14,7 @@ entity ID_CONTROL_UNIT is
 		
 		--OUTPUT
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+		CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 	);
 	
 end entity;
@@ -30,10 +30,11 @@ architecture ID_CONTROL_UNIT_Impl of ID_CONTROL_UNIT is
 	--5: MemWrite
 	--6: Branch
 	--7: PCSrc
+	--8-11: ALUop
 
 begin
 
-	CONTROL_VECTOR <= "00001011" when OPCODE = "001000" else
+	CONTROL_VECTOR <= "000000001011" when OPCODE = "001000" else
 		(others => 'Z');
 	
 end architecture;

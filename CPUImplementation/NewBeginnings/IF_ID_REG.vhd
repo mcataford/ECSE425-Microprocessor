@@ -40,7 +40,11 @@ begin
 	
 	begin
 	
-			if rising_edge(CLOCK) then
+			if RESET = '1' then
+				ID_PC <= (others => 'Z');
+				ID_INSTR <= (others => 'Z');
+				
+			elsif rising_edge(CLOCK) then
 			
 				ID_PC <= IF_PC;
 				ID_INSTR <= IF_INSTR;

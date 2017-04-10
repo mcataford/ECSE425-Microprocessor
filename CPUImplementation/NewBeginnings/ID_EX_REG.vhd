@@ -21,7 +21,7 @@ entity ID_EX_REG is
 		--Immediate
 		ID_IMMEDIATE: in std_logic_vector(31 downto 0);
 		--Control signals
-		ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
+		ID_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 		
 		--OUTPUT
 		EX_PC: out std_logic_vector(31 downto 0) := (others => 'Z');
@@ -33,7 +33,7 @@ entity ID_EX_REG is
 		--Immediate
 		EX_IMMEDIATE: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Control signals
-		EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => 'Z')
+		EX_CONTROL_VECTOR: out std_logic_vector(11 downto 0) := (others => 'Z')
 	);
 
 end entity;
@@ -47,8 +47,18 @@ begin
 	REG_BEHAVIOUR: process(CLOCK)
 	
 	begin
+	
+		if RESET = '1' then
+			
+			EX_PC <= (others => 'Z');
+			EX_INSTR <= (others => 'Z');
+			EX_REG_A <= (others => 'Z');
+			EX_REG_B <= (others => 'Z');
+			EX_IMMEDIATE <= (others => 'Z');
+			EX_CONTROL_VECTOR <= (others => 'Z');
 		
-		if rising_edge(CLOCK) then
+		
+		elsif rising_edge(CLOCK) then
 		
 			EX_PC <= ID_PC;
 			EX_INSTR <= ID_INSTR;

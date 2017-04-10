@@ -24,7 +24,7 @@ entity ID_STAGE is
 		--Sign-extended immediate
 		IMMEDIATE: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Control signals
-		CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => 'Z')
+		CONTROL_VECTOR: out std_logic_vector(11 downto 0) := (others => 'Z')
 	);
 	
 end entity;
@@ -53,7 +53,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 			
 			--OUTPUT
 			--Control signals
-			CONTROL_VECTOR: out std_logic_vector(7 downto 0)
+			CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 		);
 		
 	end component;
