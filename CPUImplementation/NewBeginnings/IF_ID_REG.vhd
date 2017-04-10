@@ -44,11 +44,8 @@ begin
 	
 			if rising_edge(CLOCK) then
 			
-				ID_PC <= REG_PC;
-				ID_INSTR <= REG_INSTR;
-			
-				REG_PC <= IF_PC;
-				REG_INSTR <= IF_INSTR;
+				ID_PC <= IF_PC;
+				ID_INSTR <= IF_INSTR;
 			
 			end if;
 

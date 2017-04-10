@@ -24,14 +24,14 @@ entity ID_EX_REG is
 		ID_CONTROL_VECTOR: in std_logic_vector(7 downto 0);
 		
 		--OUTPUT
-		EX_PC: out std_logic_vector(31 downto 0);
+		EX_PC: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Instruction
 		EX_INSTR: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Register values
-		EX_REG_A: out std_logic_vector(31 downto 0);
-		EX_REG_B: out std_logic_vector(31 downto 0);
+		EX_REG_A: out std_logic_vector(31 downto 0) := (others => 'Z');
+		EX_REG_B: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Immediate
-		EX_IMMEDIATE: out std_logic_vector(31 downto 0);
+		EX_IMMEDIATE: out std_logic_vector(31 downto 0) := (others => 'Z');
 		--Control signals
 		EX_CONTROL_VECTOR: out std_logic_vector(7 downto 0) := (others => 'Z')
 	);
@@ -40,32 +40,24 @@ end entity;
 
 architecture ID_EX_REG_Impl of ID_EX_REG is
 
+	
+
 begin
 
-	REG_BEHAVIOUR: process(ID_REG_A)
-	
-		variable REG_PC, REG_REG_B, REG_IMM: std_logic_vector(31 downto 0):= (others => 'Z');
-		variable REG_REG_A: std_logic_vector(31 downto 0) := (others => 'Z');
-		variable REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
-		variable REG_CONTROL_VECTOR: std_logic_vector(7 downto 0) := (others => 'Z');
+	REG_BEHAVIOUR: process(CLOCK)
 	
 	begin
 		
-			EX_PC <= REG_PC;
-			EX_INSTR <= REG_INSTR;
-			EX_REG_A <= REG_REG_A;
-			EX_REG_B <= REG_REG_B;
-			EX_IMMEDIATE <= REG_IMM;
-			EX_CONTROL_VECTOR <= REG_CONTROL_VECTOR;
-			
-			REG_PC := ID_PC;
-			REG_INSTR := ID_INSTR;
-			REG_REG_A := ID_REG_A;
-			REG_REG_B := ID_REG_B;
-			REG_IMM := ID_IMMEDIATE;
-			REG_CONTROL_VECTOR := ID_CONTROL_VECTOR;
-			
-
+		if rising_edge(CLOCK) then
+		
+			EX_PC <= ID_PC;
+			EX_INSTR <= ID_INSTR;
+			EX_REG_A <= ID_REG_A;
+			EX_REG_B <= ID_REG_B;
+			EX_IMMEDIATE <= ID_IMMEDIATE;
+			EX_CONTROL_VECTOR <= ID_CONTROL_VECTOR;
+		
+		end if;
 	
 	end process;
 
