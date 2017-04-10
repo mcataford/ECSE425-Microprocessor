@@ -44,13 +44,11 @@ begin
 	
 			if rising_edge(CLOCK) then
 			
-				REG_PC <= IF_PC;
-				REG_INSTR <= IF_INSTR;
-			
-			elsif falling_edge(CLOCK) then
-			
 				ID_PC <= REG_PC;
 				ID_INSTR <= REG_INSTR;
+			
+				REG_PC <= IF_PC;
+				REG_INSTR <= IF_INSTR;
 			
 			end if;
 

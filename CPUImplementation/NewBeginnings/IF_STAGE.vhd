@@ -60,7 +60,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	
 		GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 1 ns;
+		mem_delay : time :=  ns;
 		clock_period : time := 1 ns;
 		from_file : boolean := true;		
 		file_in : string := "program.txt";
@@ -110,7 +110,7 @@ begin
 		
 			PC_REG <= x"00000000";
 	
-		elsif rising_edge(CLOCK) then
+		elsif falling_edge(CLOCK) then
 		
 			if IR_MEMREAD <= '0' then
 		
@@ -120,7 +120,7 @@ begin
 			
 			end if;
 			
-		elsif falling_edge(CLOCK) then
+		elsif rising_edge(CLOCK) then
 		
 			if IR_MEMSTALL = '0' then
 			
