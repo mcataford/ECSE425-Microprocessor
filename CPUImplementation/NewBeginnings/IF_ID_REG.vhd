@@ -34,8 +34,6 @@ end entity;
 
 architecture IF_ID_REG_Impl of IF_ID_REG is
 
-	signal REG_PC, REG_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
-
 begin
 
 	REG_BEHAVIOUR: process(CLOCK)
