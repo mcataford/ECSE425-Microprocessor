@@ -31,16 +31,20 @@ forwarder : process (ID_EX_RS, ID_EX_RT)
 begin
 
     --EX FORWARDING--
-    if(EX_MEM_REGWRITE AND (EX_MEM_RD /= '0') AND (EX_MEM_RD = ID_EX_RS)) then
+    if((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD = ID_EX_RS)) then
         MUX_A <= "10";
-    elsif(EX_MEM_REGWRITE AND (EX_MEM_RD /= '0') AND (EX_MEM_RD = ID_EX_RT)) then
+    elsif((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD = ID_EX_RT)) then
         MUX_B <= "10";
 
     --MEM FORWARDING--
-    elsif(MEM_WB_REGWRITE AND (MEM_WB_RD /= '0') AND NOT(EX_MEM_REGWRITE and (EX_MEM_RD /= '0') and (EX_MEM_RD /= ID_EX_RS)) and (MEM_WB_RD = ID_EX_RS)) then
+    elsif((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RS)) AND (MEM_WB_RD = ID_EX_RS)) then
         MUX_A <= "01";
-    elsif(MEM_WB_REGWRITE AND (MEM_WB_RD /= '0') AND NOT (EX_MEM_REGWRITE AND(EX_MEM_RD /= '0') AND (EX_MEM_RD /= ID_EX_RT)) AND MEM_WB_RD = ID_EX_RT)) then
+    elsif((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT ((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RT)) AND (MEM_WB_RD = ID_EX_RT)) then
         MUX_B <= "01";
+    else
+        MUX_A <= "00";
+        MUX_B <= "00";
+
     end if;
 end process forwarder;
 
