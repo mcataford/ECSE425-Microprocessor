@@ -30,6 +30,7 @@ architecture CPU_Impl of CPU is
 	signal ID_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal ID_WB_SRC: std_logic_vector(31 downto 0) := (others => '0');
 	signal ID_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
+	signal ID_REGWRITE: std_logic;
 
 	--EX stage specific
 	signal EX_PC: std_logic_vector(31 downto 0) := (others => '0');
@@ -45,6 +46,12 @@ architecture CPU_Impl of CPU is
 	signal MEM_B_FW: std_logic_vector(31 downto 0) := (others => '0');
 	signal MEM_CONTROL_VECTOR: std_logic_vector(11 downto 0) :=(others => '0');
 	signal MEM_DATAREAD: std_logic_vector(31 downto 0) := (others => '0');
+	
+	--WB stage specific
+	signal WB_DATA: std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_ADDR: std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_INSTR: std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 
 	--Stage components
 	
@@ -82,6 +89,7 @@ architecture CPU_Impl of CPU is
 			WB_SRC: in std_logic_vector(31 downto 0);
 			--Writeback data
 			WB_DATA: in std_logic_vector(31 downto 0);
+			REGWRITE: in std_logic;
 			
 			--OUTPUT
 			--Register A
@@ -227,6 +235,28 @@ architecture CPU_Impl of CPU is
 		);
 	
 	end component;
+	
+	component MEM_WB_REG
+	
+		port(
+			--INPUT
+			--Clock signal
+			CLOCK: in std_logic;
+			--Reset
+			RESET: in std_logic;
+			--PC
+			MEM_DATA: in std_logic_vector(31 downto 0);
+			MEM_ADDR: in std_logic_vector(31 downto 0);
+			MEM_INSTR: in std_logic_vector(31 downto 0);
+			MEM_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
+			
+			WB_DATA: out std_logic_vector(31 downto 0);
+			WB_ADDR: out std_logic_vector(31 downto 0);
+			WB_INSTR: out std_logic_vector(31 downto 0);
+			WB_CONTROL_VECTOR: out std_logic_vector(11 downto 0)
+		);
+	
+	end component;
 
 begin
 
@@ -279,6 +309,7 @@ begin
 		ID_WB_SRC,
 		--Writeback data
 		ID_WB_DATA,
+		WB_CONTROL_VECTOR(2),
 		
 		--OUTPUT
 		--Register A
@@ -385,5 +416,46 @@ begin
 		--OUTPUT
 		MEM_DATAREAD
 	);
+	
+	MEM_WB_R: MEM_WB_REG port map(
+		--INPUT
+		--Clock signal
+		CLOCK,
+		--Reset
+		RESET,
+		--PC
+		MEM_DATAREAD,
+		MEM_R(31 downto 0),
+		MEM_INSTR,
+		MEM_CONTROL_VECTOR,
+		
+		WB_DATA,
+		WB_ADDR,
+		WB_INSTR,
+		WB_CONTROL_VECTOR
+	);
+	
+	WB: process(CLOCK)
+	
+	begin
+	
+		if rising_edge(CLOCK) then
+		
+			if WB_CONTROL_VECTOR(2) = '1' then
+		
+				ID_WB_DATA <= WB_DATA;
+				
+				if WB_INSTR(31 downto 26) = "000000" then
+					ID_WB_SRC(4 downto 0) <= WB_INSTR(15 downto 11);
+				else
+					ID_WB_SRC(4 downto 0) <= WB_INSTR(20 downto 16);
+				end if;
+				
+				ID_WB_SRC(31 downto 5) <= (others => '0');
+		
+			end if;
+		end if;
+		
+	end process;
 
 end architecture;
