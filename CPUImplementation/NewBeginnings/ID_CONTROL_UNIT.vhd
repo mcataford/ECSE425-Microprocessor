@@ -42,10 +42,11 @@ begin
 		"011000001011" when OPCODE = "001110" else --xori
 		"100000001011" when OPCODE = "001010" else --slti
 		
+		--R-Types
 		"000000001001" when FUNCT = "100000" else --add
 		"000100001001" when FUNCT = "100010" else --sub
-		--MULT
-		--DIV
+		"001000001001" when FUNCT = "011000" else --mult
+		"001100001001" when FUNCT = "011010" else --div
 		"010000001001" when FUNCT = "100100" else --and
 		"010100001001" when FUNCT = "100101" else --or
 		"011000001001" when FUNCT = "101000" else --xor
@@ -54,6 +55,8 @@ begin
 		"101000001001" when FUNCT = "000010" else --srl
 		"101100001001" when FUNCT = "000011" else --sra
 		"100100001001" when FUNCT = "000000" else --sll
+		"000000001000" when FUNCT = "010000" else --mfhi
+		"000000001000" when FUNCT = "010010" else --mflo
 		
 		
 		(others => '0');

@@ -69,10 +69,13 @@ begin
 					end if;
 					
 				when x"9" =>
-					R <= x"00000000" & std_logic_vector((unsigned(A) sll to_integer(signed(INSTR(10 downto 6)))));
+					R <= x"00000000" & std_logic_vector((unsigned(B) sll to_integer(signed(INSTR(10 downto 6)))));
 			
 				when x"A" =>
-					R <= x"00000000" & std_logic_vector((unsigned(A) srl to_integer(signed(INSTR(10 downto 6)))));
+					R <= x"00000000" & std_logic_vector((unsigned(B) srl to_integer(signed(INSTR(10 downto 6)))));
+				
+				when x"B" =>
+					R <= x"00000000" & to_stdlogicvector(to_bitvector(B) sra to_integer(signed(INSTR(10 downto 6))));
 					
 					
 				when others =>

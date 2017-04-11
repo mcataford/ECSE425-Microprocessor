@@ -22,7 +22,7 @@ entity MEM_STAGE is
 			--Control signals
 			CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			--Results from ALU
-			DATA_ADDRESS: in std_logic_vector(31 downto 0);
+			DATA_ADDRESS: in std_logic_vector(63 downto 0);
 			--B fwd
 			DATA_PAYLOAD: in std_logic_vector(31 downto 0);
 			
@@ -109,12 +109,12 @@ begin
 			if CONTROL_VECTOR(5 downto 4) = "01" then
 			
 				DATA_READ <= '1';
-				DATA_ADDR <= to_integer(unsigned(DATA_ADDRESS));
+				DATA_ADDR <= to_integer(unsigned(DATA_ADDRESS(31 downto 0)));
 			
 			elsif CONTROL_VECTOR(5 downto 4) = "10" then
 			
 				DATA_WRITE <= '1';
-				DATA_ADDR <= to_integer(unsigned(DATA_ADDRESS));
+				DATA_ADDR <= to_integer(unsigned(DATA_ADDRESS(31 downto 0)));
 				DATA_IN <= DATA_PAYLOAD;
 			
 			end if;

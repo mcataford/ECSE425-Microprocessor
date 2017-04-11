@@ -52,9 +52,11 @@ architecture CPU_Impl of CPU is
 	
 	--WB stage specific
 	signal WB_DATA: std_logic_vector(31 downto 0) := (others => '0');
-	signal WB_ADDR: std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_ADDR: std_logic_vector(63 downto 0) := (others => '0');
 	signal WB_INSTR: std_logic_vector(31 downto 0) := (others => '0');
 	signal WB_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
+	
+	signal HI,LO: std_logic_vector(31 downto 0) := (others => '0');
 
 	--Stage components
 	
@@ -140,7 +142,7 @@ architecture CPU_Impl of CPU is
 			--Control signals
 			CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			--Results from ALU
-			DATA_ADDRESS: in std_logic_vector(31 downto 0);
+			DATA_ADDRESS: in std_logic_vector(63 downto 0);
 			--B fwd
 			DATA_PAYLOAD: in std_logic_vector(31 downto 0);
 			
@@ -249,39 +251,16 @@ architecture CPU_Impl of CPU is
 			RESET: in std_logic;
 			--PC
 			MEM_DATA: in std_logic_vector(31 downto 0);
-			MEM_ADDR: in std_logic_vector(31 downto 0);
+			MEM_ADDR: in std_logic_vector(63 downto 0);
 			MEM_INSTR: in std_logic_vector(31 downto 0);
 			MEM_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 			
 			WB_DATA: out std_logic_vector(31 downto 0);
-			WB_ADDR: out std_logic_vector(31 downto 0);
+			WB_ADDR: out std_logic_vector(63 downto 0);
 			WB_INSTR: out std_logic_vector(31 downto 0);
 			WB_CONTROL_VECTOR: out std_logic_vector(11 downto 0)
 		);
 	
-	end component;
-
-	component FORWARDING_UNIT
-		port(
-			--Inputs
-			EX_MEM_REGWRITE : in STD_LOGIC;
-			MEM_WB_REGWRITE : in STD_LOGIC;
-			ID_EX_RS : in STD_LOGIC_VECTOR(4 downto 0);
-			ID_EX_RT : in STD_LOGIC_VECTOR(4 downto 0);
-			EX_MEM_RD : in STD_LOGIC_VECTOR(4 downto 0);
-			MEM_WB_RD : in STD_LOGIC_VECTOR(4 downto 0);
-			--Outputs
-			MUX_A : out STD_LOGIC_VECTOR(1 downto 0);
-			MUX_B : out STD_LOGIC_VECTOR(1 downto 0)
-		);
-	end component;
-
-	component MUX_4_TO_1 
-		port(
-			A,B,C: in std_logic_vector(31 downto 0);
-			SELECTOR: in std_logic_vector(1 downto 0);
-			OUTPUT: out std_logic_vector(31 downto 0)
-		);
 	end component;
 
 begin
@@ -436,7 +415,7 @@ begin
 		--Control signals
 		MEM_CONTROL_VECTOR,
 		--Results from ALU
-		MEM_R(31 downto 0),
+		MEM_R,
 		--B fwd
 		MEM_B_FW,
 		
@@ -452,7 +431,7 @@ begin
 		RESET,
 		--PC
 		MEM_DATAREAD,
-		MEM_R(31 downto 0),
+		MEM_R,
 		MEM_INSTR,
 		MEM_CONTROL_VECTOR,
 		
@@ -470,11 +449,22 @@ begin
 		
 			if WB_CONTROL_VECTOR(2) = '1' then
 		
-				ID_WB_DATA <= WB_DATA;
-		
-			else 
+					ID_WB_DATA <= WB_DATA;
+					
+				end if;
+				
+			if (WB_INSTR(5 downto 0) = "011000" and WB_INSTR(31 downto 26) = "000000") or (WB_INSTR(5 downto 0) = "011010" and WB_INSTR(31 downto 26) = "000000") then
 			
-				ID_WB_DATA <= WB_ADDR;
+				HI <= WB_ADDR(63 downto 32);
+				LO <= WB_ADDR(31 downto 0);
+			
+			elsif (WB_INSTR(5 downto 0) = "010000" and WB_INSTR(31 downto 26) = "000000") then
+					ID_WB_DATA <= HI;
+			elsif	(WB_INSTR(5 downto 0) = "010010" and WB_INSTR(31 downto 26) = "000000") then
+					ID_WB_DATA <= LO;
+			else
+			
+				ID_WB_DATA <= WB_ADDR(31 downto 0);
 			
 			end if;
 			
