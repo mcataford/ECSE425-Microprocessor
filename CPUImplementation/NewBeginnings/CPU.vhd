@@ -274,10 +274,10 @@ begin
 		--PC reset signal
 		RESET,
 		--PC output selection
-		IF_PC_SELECT,
+		EX_CONTROL_VECTOR(7),
 		
 		--Alt. PC from the ALU
-		IF_PC_ALU,
+		MEM_R(31 downto 0),
 		
 		--OUTPUT
 		--PC output

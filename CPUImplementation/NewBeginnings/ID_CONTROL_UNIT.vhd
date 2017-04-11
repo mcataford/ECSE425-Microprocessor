@@ -45,6 +45,9 @@ begin
 		"000000101111" when OPCODE = "101011" else --sw
 		"000000011111" when OPCODE = "100011" else --lw
 		
+		--J-types
+	  "000011000011" when OPCODE = "000010" else --j
+		
 		--R-Types
 		"000000001001" when FUNCT = "100000" else --add
 		"000100001001" when FUNCT = "100010" else --sub

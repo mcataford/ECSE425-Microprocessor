@@ -101,7 +101,7 @@ begin
 					REG_A <= REG(to_integer(unsigned(INSTR(25 downto 21))));
 					REG_B <= REG(to_integer(unsigned(INSTR(20 downto 16))));
 					
-					if OPCODE = 12 or OPCODE = 13 or OPCODE = 14 then
+					if OPCODE = 12 or OPCODE = 13 or OPCODE = 14 or OPCODE = 2 then
 						IMMEDIATE <= x"0000" & INSTR(15 downto 0);
 					elsif OPCODE = 8 or OPCODE = 10 or OPCODE = 35 or OPCODE = 43 then
 						IMMEDIATE(31 downto 16) <= (others => INSTR(15));

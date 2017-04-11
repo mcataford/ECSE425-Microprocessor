@@ -115,9 +115,19 @@ begin
 			if IR_MEMREAD <= '0' then
 		
 				IR_MEMREAD <= '1';
-				IR_ADDR <= to_integer(unsigned(PC_REG));
-				PC_INC <= std_logic_vector(unsigned(PC_REG)+1);
-			
+				
+				if PC_SEL = '0' or PC_SEL = 'Z' then
+				
+					IR_ADDR <= to_integer(unsigned(PC_REG));
+					PC_INC <= std_logic_vector(unsigned(PC_REG)+1);
+					
+				else
+				
+					IR_ADDR <= to_integer(unsigned(ALU_PC));
+					PC_INC <= std_logic_vector(unsigned(ALU_PC)+1);
+				
+				end if;
+				
 			end if;
 			
 		elsif rising_edge(CLOCK) then
