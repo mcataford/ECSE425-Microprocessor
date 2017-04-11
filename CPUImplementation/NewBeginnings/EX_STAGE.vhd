@@ -65,7 +65,8 @@ begin
 	
 	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else PC;
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else Imm;
-	R <= ALU_OUT;
+	R <= x"00000000" & instr(15 downto 0) & x"0000" when INSTR(31 downto 26) = "001111" else
+		ALU_OUT;
 	R32 <=ALU_OUT(31 downto 0);
 	
 end architecture;

@@ -41,6 +41,7 @@ begin
 		"010100001011" when OPCODE = "001101" else --ori
 		"011000001011" when OPCODE = "001110" else --xori
 		"100000001011" when OPCODE = "001010" else --slti
+		"000000001011" when OPCODE = "001111" else --lui
 		
 		--R-Types
 		"000000001001" when FUNCT = "100000" else --add
