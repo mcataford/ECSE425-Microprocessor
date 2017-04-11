@@ -88,7 +88,11 @@ begin
 	
 		if rising_edge(CLOCK) then
 		
-			--Write back to register here
+				if REGWRITE = '1' then
+				
+					REG(to_integer(unsigned(WB_SRC))) <= WB_DATA;
+				
+				end if;
 				
 		elsif falling_edge(CLOCK) then
 				
