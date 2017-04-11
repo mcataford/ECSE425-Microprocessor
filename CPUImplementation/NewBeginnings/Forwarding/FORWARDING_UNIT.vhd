@@ -27,25 +27,32 @@ architecture behaviour of FORWARDING_UNIT is
 
 begin
 
-forwarder : process (ID_EX_RS, ID_EX_RT)
+forwarder : process (ID_EX_RS, ID_EX_RT, EX_MEM_REGWRITE, MEM_WB_REGWRITE, EX_MEM_RD, MEM_WB_RD)
 begin
+
+    MUX_A <= "00";
+    MUX_B <= "00";
 
     --EX FORWARDING--
     if((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD = ID_EX_RS)) then
-        MUX_A <= "10";
-    elsif((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD = ID_EX_RT)) then
+            MUX_A <= "10";
+    end if;
+
+    if((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD = ID_EX_RT)) then
         MUX_B <= "10";
+    end if;
 
     --MEM FORWARDING--
-    elsif((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RS)) AND (MEM_WB_RD = ID_EX_RS)) then
+    if((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RS)) AND (MEM_WB_RD = ID_EX_RS)) then
         MUX_A <= "01";
-    elsif((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT ((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RT)) AND (MEM_WB_RD = ID_EX_RT)) then
-        MUX_B <= "01";
-    else
-        MUX_A <= "00";
-        MUX_B <= "00";
-
     end if;
+
+    if((MEM_WB_REGWRITE = '1') AND (MEM_WB_RD /= "00000") AND NOT ((EX_MEM_REGWRITE = '1') AND (EX_MEM_RD /= "00000") AND (EX_MEM_RD /= ID_EX_RT)) AND (MEM_WB_RD = ID_EX_RT)) then
+        MUX_B <= "01";
+    end if;
+
+
+
 end process forwarder;
 
 end behaviour;
