@@ -453,7 +453,7 @@ begin
 			
 			if WB_INSTR(31 downto 26) = "000000" then
 				ID_WB_SRC(4 downto 0) <= WB_INSTR(15 downto 11);
-			elsif WB_INSTR(5 downto 0) = "000000" then
+			else
 				ID_WB_SRC(4 downto 0) <= WB_INSTR(20 downto 16);
 			end if;
 				

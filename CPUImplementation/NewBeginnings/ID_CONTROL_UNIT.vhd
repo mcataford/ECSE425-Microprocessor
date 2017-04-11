@@ -49,6 +49,6 @@ begin
 		"011100001011" when FUNCT = "100111" else --nor
 		
 		
-		(others => 'Z');
+		(others => '0');
 	
 end architecture;
