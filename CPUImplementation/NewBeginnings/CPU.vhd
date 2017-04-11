@@ -38,6 +38,8 @@ architecture CPU_Impl of CPU is
 	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal EX_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 	signal EX_R: std_logic_vector(63 downto 0) := (others => '0');
+	signal MUX_SEL_A, MUX_SEL_B : std_logic_vector(1 downto 0);
+	signal MUX_OUT_A, MUX_OUT_B : std_logic_vector(4 downto 0);
 	
 	--MEM stage specific
 	signal MEM_PC: std_logic_vector(31 downto 0) := (others => '0');
@@ -258,6 +260,29 @@ architecture CPU_Impl of CPU is
 	
 	end component;
 
+	component FORWARDING_UNIT
+		port(
+			--Inputs
+			EX_MEM_REGWRITE : in STD_LOGIC;
+			MEM_WB_REGWRITE : in STD_LOGIC;
+			ID_EX_RS : in STD_LOGIC_VECTOR(4 downto 0);
+			ID_EX_RT : in STD_LOGIC_VECTOR(4 downto 0);
+			EX_MEM_RD : in STD_LOGIC_VECTOR(4 downto 0);
+			MEM_WB_RD : in STD_LOGIC_VECTOR(4 downto 0);
+			--Outputs
+			MUX_A : out STD_LOGIC_VECTOR(1 downto 0);
+			MUX_B : out STD_LOGIC_VECTOR(1 downto 0)
+		);
+	end component;
+
+	component MUX_4_TO_1 
+		port(
+			A,B,C: in std_logic_vector(4 downto 0);
+			SELECTOR: in std_logic_vector(1 downto 0);
+			OUTPUT: out std_logic_vector(4 downto 0)
+		);
+	end component;
+
 begin
 
 	--Stages and registers, in order.
@@ -354,13 +379,37 @@ begin
 		EX_CONTROL_VECTOR
 	);
 	
+	MUX_A : MUX_4_TO_1 port map(
+		--Normal output of ID/EX reg for ALU in A
+		EX_REG_A,
+		--Output of WB stage after the final multiplexer
+		WB_DATA,
+		--ALU output after it has been run through the EX/MEM reg
+		MEM_R,
+		--The control signal produced by the forwarding unit found below
+		MUX_SEL_A,
+		--The output of this multiplexer, either from Register File, MEM forwarding, or WB forwarding
+		MUX_OUT_A
+	);
+
+	MUX_B : MUX_4_TO_1 port map(
+		--These are the same as that for MUX_A but with inputs B for the ALU
+		EX_REG_B,
+		WB_DATA,
+		MEM_R,
+		MUX_SEL_B,
+		MUX_OUT_B
+	);
+
 	EX_ST: EX_STAGE port map(
 		--INPUT
 		--Program counter
 		EX_PC,
 		--Operands
-		EX_REG_A,
-		EX_REG_B,
+		--EX_REG_A,
+		--EX_REG_B,
+		MUX_OUT_A,
+		MUX_OUT_B,
 		EX_IMMEDIATE,
 		--Control signals
 		EX_CONTROL_VECTOR,
@@ -370,6 +419,25 @@ begin
 		--OUTPUT
 		--Results
 		EX_R
+	);
+
+	FORWARD : FORWARDING_UNIT port map(
+		--RegisterWrite control from EX/MEM reg
+		MEM_CONTROL_VECTOR,
+		--RegisterWrite control from MEM/WB reg
+		WB_CONTROL_VECTOR,
+		--Rs from instruction out of ID/EX reg
+		EX_INSTR(20 downto 16);
+		--Rt from instruction out of ID/EX reg
+		EX_INSTR(15 downto 11); --Uncertain if 15 downto 11 or 25 downto 21
+		--Rd from instruction out of EX/MEM reg
+		MEM_INSTR(15 downto 11); --Uncertain if 15 downto 11 or 25 downto 21
+		--Rd from instruction out of MEM/WB reg
+		WB_INSTR(15 downto 11); --Same as above
+		--Controlling output signals to two muxes that feed the EX_ST
+		--found above the EX_ST component ^^^^^
+		MUX_SEL_A,
+		MUX_SEL_B
 	);
 	
 	EX_MEM_R: EX_MEM_REG port map(
