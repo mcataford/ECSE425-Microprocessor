@@ -27,7 +27,7 @@ entity MEM_STAGE is
 			DATA_PAYLOAD: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
-			DATA_OUT: out std_logic_vector(31 downto 0)
+			DATA_OUT: out std_logic_vector(31 downto 0) := (others => 'Z')
 		);
 	
 end entity;

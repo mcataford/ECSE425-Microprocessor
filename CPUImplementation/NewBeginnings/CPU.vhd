@@ -434,7 +434,7 @@ begin
 		WB_INSTR,
 		WB_CONTROL_VECTOR
 	);
-	
+
 	WB: process(CLOCK)
 	
 	begin
