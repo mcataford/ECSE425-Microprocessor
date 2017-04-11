@@ -44,9 +44,9 @@ begin
 		"010000001011" when OPCODE = "001100" else --andi
 		"010100001001" when FUNCT = "100101" else --or
 		"010100001011" when OPCODE = "001101" else --ori
-		"011000001001" when FUNCT = "100110" else --xor
+		"011000001001" when FUNCT = "101000" else --xor
 		"011000001011" when OPCODE = "001110" else --xori
-		"011100001011" when FUNCT = "100111" else --nor
+		"011100001001" when FUNCT = "100111" else --nor
 		
 		
 		(others => '0');
