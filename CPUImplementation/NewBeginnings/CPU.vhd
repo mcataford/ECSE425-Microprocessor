@@ -334,7 +334,7 @@ begin
 		ID_WB_SRC,
 		--Writeback data
 		ID_WB_DATA,
-		WB_CONTROL_VECTOR(2),
+		WB_CONTROL_VECTOR(3),
 		
 		--OUTPUT
 		--Register A
@@ -502,26 +502,31 @@ begin
 		WB_INSTR,
 		WB_CONTROL_VECTOR
 	);
-	
+
 	WB: process(CLOCK)
 	
 	begin
 	
-		if rising_edge(CLOCK) then
+		if falling_edge(CLOCK) then
 		
 			if WB_CONTROL_VECTOR(2) = '1' then
 		
 				ID_WB_DATA <= WB_DATA;
-				
-				if WB_INSTR(31 downto 26) = "000000" then
-					ID_WB_SRC(4 downto 0) <= WB_INSTR(15 downto 11);
-				else
-					ID_WB_SRC(4 downto 0) <= WB_INSTR(20 downto 16);
-				end if;
-				
-				ID_WB_SRC(31 downto 5) <= (others => '0');
 		
+			else 
+			
+				ID_WB_DATA <= WB_ADDR;
+			
 			end if;
+			
+			if WB_INSTR(31 downto 26) = "000000" then
+				ID_WB_SRC(4 downto 0) <= WB_INSTR(15 downto 11);
+			else
+				ID_WB_SRC(4 downto 0) <= WB_INSTR(20 downto 16);
+			end if;
+				
+			ID_WB_SRC(31 downto 5) <= (others => '0');
+			
 		end if;
 		
 	end process;

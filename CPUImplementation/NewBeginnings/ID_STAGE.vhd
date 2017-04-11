@@ -74,9 +74,6 @@ begin
 		CONTROL_VECTOR
 	);
 	
-	--R[0] is locked at 0.
-	REG(0) <= (others => '0');
-	
 	REGISTER_BEHAVIOUR: process(CLOCK)
 	
 		variable OPCODE,FUNCT: unsigned(5 downto 0);
@@ -85,10 +82,17 @@ begin
 	
 		OPCODE := unsigned(INSTR(31 downto 26));
 		FUNCT := unsigned(INSTR(5 downto 0));
+		
+		--R[0] is locked at 0.
+		REG(0) <= (others => '0');
 	
 		if rising_edge(CLOCK) then
 		
-			--Write back to register here
+				if REGWRITE = '1' then
+				
+					REG(to_integer(unsigned(WB_SRC))) <= WB_DATA;
+				
+				end if;
 				
 		elsif falling_edge(CLOCK) then
 				

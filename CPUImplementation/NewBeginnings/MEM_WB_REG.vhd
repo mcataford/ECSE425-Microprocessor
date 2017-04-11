@@ -17,10 +17,10 @@ entity MEM_WB_REG is
 		MEM_INSTR: in std_logic_vector(31 downto 0);
 		MEM_CONTROL_VECTOR: in std_logic_vector(11 downto 0);
 		
-		WB_DATA: out std_logic_vector(31 downto 0);
-		WB_ADDR: out std_logic_vector(31 downto 0);
-		WB_INSTR: out std_logic_vector(31 downto 0);
-		WB_CONTROL_VECTOR: out std_logic_vector(11 downto 0)
+		WB_DATA: out std_logic_vector(31 downto 0) := (others => 'Z');
+		WB_ADDR: out std_logic_vector(31 downto 0) := (others => 'Z');
+		WB_INSTR: out std_logic_vector(31 downto 0) := (others => 'Z');
+		WB_CONTROL_VECTOR: out std_logic_vector(11 downto 0) := (others => 'Z')
 	);
 	
 end entity;
