@@ -50,7 +50,7 @@ begin
 			MEM_R <= (others => 'Z');
 			MEM_B_FW <= (others => 'Z');
 			MEM_INSTR <= (others => 'Z');
-			MEM_CONTROL_VECToR <= (others => 'Z');
+			MEM_CONTROL_VECTOR <= (others => 'Z');
 	
 		elsif rising_edge(CLOCK) then
 	

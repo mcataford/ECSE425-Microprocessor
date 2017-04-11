@@ -44,9 +44,13 @@ begin
 		"000000001011" when OPCODE = "001111" else --lui
 		"000000101111" when OPCODE = "101011" else --sw
 		"000000011111" when OPCODE = "100011" else --lw
+		"000001000011" when OPCODE = "000100" else -- beq
+		"000001000011" when OPCODE = "000101" else -- bne
 		
 		--J-types
 	  "000011000011" when OPCODE = "000010" else --j
+		"000011000001" when FUNCT = "001000" else --jr 
+		"000011000011" when OPCODE = "000011" else --jal
 		
 		--R-Types
 		"000000001001" when FUNCT = "100000" else --add

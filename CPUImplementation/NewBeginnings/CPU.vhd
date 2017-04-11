@@ -38,6 +38,7 @@ architecture CPU_Impl of CPU is
 	signal EX_INSTR: std_logic_vector(31 downto 0) := (others => 'Z');
 	signal EX_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 	signal EX_R: std_logic_vector(63 downto 0) := (others => '0');
+	signal EX_BRANCH: std_logic := '0';
 	
 	signal MUX_SEL_A, MUX_SEL_B : std_logic_vector(1 downto 0);
 	signal MUX_OUT_A, MUX_OUT_B : std_logic_vector(31 downto 0);
@@ -57,6 +58,7 @@ architecture CPU_Impl of CPU is
 	signal WB_CONTROL_VECTOR: std_logic_vector(11 downto 0) := (others => '0');
 	
 	signal HI,LO: std_logic_vector(31 downto 0) := (others => '0');
+	signal BRANCH_SEL: std_logic := '0';
 
 	--Stage components
 	
@@ -95,6 +97,7 @@ architecture CPU_Impl of CPU is
 			--Writeback data
 			WB_DATA: in std_logic_vector(31 downto 0);
 			REGWRITE: in std_logic;
+			RA_WRITE: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
 			--Register A
@@ -126,7 +129,8 @@ architecture CPU_Impl of CPU is
 			
 			--OUTPUT
 			--Results
-			R: out std_logic_vector(63 downto 0) := (others => '0')
+			R: out std_logic_vector(63 downto 0) := (others => '0');
+			BRANCH: out std_logic := '0'
 		);
 	
 	end component;
@@ -274,10 +278,10 @@ begin
 		--PC reset signal
 		RESET,
 		--PC output selection
-		EX_CONTROL_VECTOR(7),
+		BRANCH_SEL,
 		
 		--Alt. PC from the ALU
-		MEM_R(31 downto 0),
+		EX_R(31 downto 0),
 		
 		--OUTPUT
 		--PC output
@@ -315,6 +319,7 @@ begin
 		--Writeback data
 		ID_WB_DATA,
 		WB_CONTROL_VECTOR(3),
+		EX_PC,
 		
 		--OUTPUT
 		--Register A
@@ -375,7 +380,8 @@ begin
 		
 		--OUTPUT
 		--Results
-		EX_R
+		EX_R,
+		EX_BRANCH
 	);
 	
 	EX_MEM_R: EX_MEM_REG port map(
@@ -440,6 +446,9 @@ begin
 		WB_INSTR,
 		WB_CONTROL_VECTOR
 	);
+	
+	BRANCH_SEL <= '1' when EX_CONTROL_VECTOR(7) = '1' or (EX_BRANCH = '1' and EX_INSTR(31 downto 26) = "000100") or (EX_BRANCH = '0' and EX_INSTR(31 downto 26) = "000101" ) else
+		'0';
 
 	WB: process(CLOCK)
 	

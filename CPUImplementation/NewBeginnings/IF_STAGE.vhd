@@ -125,6 +125,8 @@ begin
 				
 					IR_ADDR <= to_integer(unsigned(ALU_PC));
 					PC_INC <= std_logic_vector(unsigned(ALU_PC)+1);
+					
+					report "Yes.";
 				
 				end if;
 				

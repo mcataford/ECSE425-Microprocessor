@@ -16,6 +16,7 @@ entity ID_STAGE is
 		--Writeback data
 		WB_DATA: in std_logic_vector(31 downto 0);
 		REGWRITE: in std_logic;
+		RA_WRITE: in std_logic_vector(31 downto 0);
 		
 		--OUTPUT
 		--Register A
@@ -101,15 +102,21 @@ begin
 					REG_A <= REG(to_integer(unsigned(INSTR(25 downto 21))));
 					REG_B <= REG(to_integer(unsigned(INSTR(20 downto 16))));
 					
-					if OPCODE = 12 or OPCODE = 13 or OPCODE = 14 or OPCODE = 2 then
+					if OPCODE = 12 or OPCODE = 13 or OPCODE = 14 or OPCODE = 2 or OPCODE = 3 then
 						IMMEDIATE <= x"0000" & INSTR(15 downto 0);
-					elsif OPCODE = 8 or OPCODE = 10 or OPCODE = 35 or OPCODE = 43 then
+					elsif OPCODE = 8 or OPCODE = 10 or OPCODE = 35 or OPCODE = 43 or OPCODE = 4 or OPCODE = 5 then
 						IMMEDIATE(31 downto 16) <= (others => INSTR(15));
 						IMMEDIATE(15 downto 0) <= INSTR(15 downto 0);
 					end if;
 					--TODO: Add branch padding.
 					
+					if OPCODE = 3 then
+						REG(31) <= RA_WRITE;
+					end if;
+					
 				end if;
+				
+
 				
 		end if;
 	

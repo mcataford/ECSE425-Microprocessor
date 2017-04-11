@@ -19,14 +19,15 @@ entity EX_STAGE is
 		
 		--OUTPUT
 		--Results
-		R: out std_logic_vector(63 downto 0) := (others => 'Z')
+		R: out std_logic_vector(63 downto 0) := (others => 'Z');
+		BRANCH: out std_logic
 	);
 	
 end entity;
 
 architecture EX_STAGE_Impl of EX_STAGE is
 
-	signal OPERAND_A, OPERAND_B,R32: std_logic_vector(31 downto 0);
+	signal OPERAND_A, OPERAND_B: std_logic_vector(31 downto 0);
 	signal ALU_OUT: std_logic_vector(63 downto 0);
 
 	component ALU
@@ -64,11 +65,18 @@ begin
 	);
 	
 	OPERAND_A <= A when CONTROL_VECTOR(7) = '0' else 
-	x"00000000" when INSTR(31 downto 26) = "000010" else
+	x"00000000" when INSTR(31 downto 26) = "000010" or INSTR(31 downto 26) = "000011" or INSTR(31 downto 26) = "000100" else
 	PC;
+	
 	OPERAND_B <= B when CONTROL_VECTOR(1) = '0' else Imm;
+	
 	R <= x"00000000" & instr(15 downto 0) & x"0000" when INSTR(31 downto 26) = "001111" else
+		x"00000000" & std_logic_vector(signed(PC) + signed(Imm) + to_signed(1,32)) when (INSTR(31 downto 26) = "000100" or INSTR(31 downto 26) = "000101") else
+		x"00000000" & A when INSTR(5 downto 0) = "001000" else
+		
 		ALU_OUT;
-	R32 <=ALU_OUT(31 downto 0);
+		
+	BRANCH <= '1' when A = B else
+		'0';
 	
 end architecture;

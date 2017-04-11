@@ -45,8 +45,10 @@ begin
 					R <= std_logic_vector(to_signed(to_integer(signed(A)) * to_integer(signed(B)),64));
 					
 				when x"3" =>
-					R(63 downto 32) <= std_logic_vector(to_signed(to_integer(signed(A)) / to_integer(signed(B)),32));
-					R(31 downto 0) <= std_logic_vector(to_signed(to_integer(signed(A)) mod to_integer(signed(B)),32));
+					if B /= x"00000000" then
+						R(63 downto 32) <= std_logic_vector(to_signed(to_integer(signed(A)) / to_integer(signed(B)),32));
+						R(31 downto 0) <= std_logic_vector(to_signed(to_integer(signed(A)) mod to_integer(signed(B)),32));
+					end if;
 				
 				when x"4" => 
 					R <= x"00000000" & (A and B);
