@@ -5,9 +5,9 @@ use ieee.std_logic_1164.all;
 entity MUX is
 
 port(
-	A,B,C: in std_logic_vector(4 downto 0);
+	A,B,C: in std_logic_vector(31 downto 0);
 	SELECTOR: in std_logic_vector(1 downto 0);
-	OUTPUT: out std_logic_vector(4 downto 0)
+	OUTPUT: out std_logic_vector(31 downto 0)
 );
 
 end entity;

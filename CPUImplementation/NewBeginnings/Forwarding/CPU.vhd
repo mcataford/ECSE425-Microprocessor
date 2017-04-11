@@ -295,8 +295,8 @@ begin
 		--PC reset signal
 		RESET,
 		--PC output selection
-		IF_PC_SELECT,
-		
+		--IF_PC_SELECT,
+		'0',
 		--Alt. PC from the ALU
 		IF_PC_ALU,
 		
@@ -379,15 +379,38 @@ begin
 		--Control signals
 		EX_CONTROL_VECTOR
 	);
+	
+	MUX_A : MUX_4_TO_1 port map(
+		--Normal output of ID/EX reg for ALU in A
+		EX_REG_A,
+		--Output of WB stage after the final multiplexer
+		WB_DATA,
+		--ALU output after it has been run through the EX/MEM reg
+		MEM_R(31 downto 0),
+		--The control signal produced by the forwarding unit found below
+		MUX_SEL_A,
+		--The output of this multiplexer, either from Register File, MEM forwarding, or WB forwarding
+		MUX_OUT_A
+	);
+
+	MUX_B : MUX_4_TO_1 port map(
+		--These are the same as that for MUX_A but with inputs B for the ALU
+		EX_REG_B,
+		WB_DATA,
+		MEM_R(31 downto 0),
+		MUX_SEL_B,
+		MUX_OUT_B
+	);
 
 	EX_ST: EX_STAGE port map(
 		--INPUT
 		--Program counter
 		EX_PC,
 		--Operands
-		EX_REG_A,
-		EX_REG_B,
-
+		--EX_REG_A,
+		--EX_REG_B,
+		MUX_OUT_A,
+		MUX_OUT_B,
 		EX_IMMEDIATE,
 		--Control signals
 		EX_CONTROL_VECTOR,
@@ -397,6 +420,25 @@ begin
 		--OUTPUT
 		--Results
 		EX_R
+	);
+
+	FORWARD : FORWARDING_UNIT port map(
+		--RegisterWrite control from EX/MEM reg
+		MEM_CONTROL_VECTOR(3),
+		--RegisterWrite control from MEM/WB reg
+		WB_CONTROL_VECTOR(3),
+		--Rs from instruction out of ID/EX reg
+		EX_INSTR(20 downto 16),
+		--Rt from instruction out of ID/EX reg
+		EX_INSTR(15 downto 11), --Uncertain if 15 downto 11 or 25 downto 21
+		--Rd from instruction out of EX/MEM reg
+		MEM_INSTR(15 downto 11), --Uncertain if 15 downto 11 or 25 downto 21
+		--Rd from instruction out of MEM/WB reg
+		WB_INSTR(15 downto 11), --Same as above
+		--Controlling output signals to two muxes that feed the EX_ST
+		--found above the EX_ST component ^^^^^
+		MUX_SEL_A,
+		MUX_SEL_B
 	);
 	
 	EX_MEM_R: EX_MEM_REG port map(
