@@ -60,7 +60,7 @@ architecture IF_STAGE_Impl of IF_STAGE is
 	
 		GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time :=  ns;
+		mem_delay : time := 1 ns;
 		clock_period : time := 1 ns;
 		from_file : boolean := true;		
 		file_in : string := "program.txt";

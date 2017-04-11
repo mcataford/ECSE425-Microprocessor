@@ -15,6 +15,7 @@ entity ID_STAGE is
 		WB_SRC: in std_logic_vector(31 downto 0);
 		--Writeback data
 		WB_DATA: in std_logic_vector(31 downto 0);
+		REGWRITE: in std_logic;
 		
 		--OUTPUT
 		--Register A
@@ -38,7 +39,7 @@ architecture ID_STAGE_Impl of ID_STAGE is
 	
 	--Register file
 	type REGISTER_FILE is array (REG_COUNT_MAX-1 downto 0) of std_logic_vector(31 downto 0);
-	signal REG: REGISTER_FILE := (others => (others => '1'));
+	signal REG: REGISTER_FILE := (others => (others => '0'));
 	
 	--Subcomponent instantiation
 	
