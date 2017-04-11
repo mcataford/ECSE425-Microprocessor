@@ -44,6 +44,7 @@ architecture CPU_Impl of CPU is
 	signal MEM_INSTR: std_logic_vector(31 downto 0) := (others => '0');
 	signal MEM_B_FW: std_logic_vector(31 downto 0) := (others => '0');
 	signal MEM_CONTROL_VECTOR: std_logic_vector(11 downto 0) :=(others => '0');
+	signal MEM_DATAREAD: std_logic_vector(31 downto 0) := (others => '0');
 
 	--Stage components
 	
@@ -113,6 +114,27 @@ architecture CPU_Impl of CPU is
 			--OUTPUT
 			--Results
 			R: out std_logic_vector(63 downto 0) := (others => '0')
+		);
+	
+	end component;
+	
+	component MEM_STAGE
+	
+		port(
+			--INPUT
+			--Clock
+			CLOCK: in std_logic;
+			--Reset
+			RESET: in std_logic;
+			--Control signals
+			CONTROL_VECTOR: in std_logic_vector(11 downto 0);
+			--Results from ALU
+			DATA_ADDRESS: in std_logic_vector(31 downto 0);
+			--B fwd
+			DATA_PAYLOAD: in std_logic_vector(31 downto 0);
+			
+			--OUTPUT
+			DATA_OUT: out std_logic_vector(31 downto 0)
 		);
 	
 	end component;
@@ -345,6 +367,23 @@ begin
 		--Control signals
 		MEM_CONTROL_VECTOR
 	
+	);
+	
+	MEM_ST: MEM_STAGE port map(
+		--INPUT
+		--Clock
+		CLOCK,
+		--Reset
+		RESET,
+		--Control signals
+		MEM_CONTROL_VECTOR,
+		--Results from ALU
+		MEM_R(31 downto 0),
+		--B fwd
+		MEM_B_FW,
+		
+		--OUTPUT
+		MEM_DATAREAD
 	);
 
 end architecture;
