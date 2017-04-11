@@ -72,71 +72,31 @@ EXMEM_RD <= "11000";
 
 wait for 1 ns;
 
-MEMWB_RD <= "00100";
-
-wait for 1 ns;
-
-EXMEM_RD <= "11000";
-
-wait for 1 ns;
-
-
-MEMWB_RD <= "00010";
-
-wait for 1 ns;
-
-MEMWB_RD <= "01000";
-
-wait for 1 ns;
-
-MEMWB_RD <= "00100";
-
-wait for 1 ns;
-
-MEMWB_RD <= "01000";
-
-
-wait for 1 ns;
-
 ex_mem_rw <= '1';
-mem_wb_rw <= '0';
-IDEX_RS <= "00010";
-IDEX_RT <= "00100";
-EXMEM_RD <= "11000";
-MEMWB_RD <= "01000";
+IDEX_RS <= "11000";
 
 wait for 1 ns;
 
+IDEX_RS <= "01010";
+IDEX_RT <="11000";
+
+wait for 1 ns;
+
+ex_mem_rw <= '0';
+mem_wb_rw <= '1';
+MEMWB_RD <= "00110";
 EXMEM_RD <= "00010";
+IDEX_RS <= "00110";
 
 wait for 1 ns;
 
-EXMEM_RD <= "11000";
+IDEX_RS <= "00111";
 
 wait for 1 ns;
 
-MEMWB_RD <= "00100";
-
-wait for 1 ns;
-
-EXMEM_RD <= "11000";
-
-wait for 1 ns;
+IDEX_RT <= "00110";
 
 
-MEMWB_RD <= "00010";
-
-wait for 1 ns;
-
-MEMWB_RD <= "01000";
-
-wait for 1 ns;
-
-MEMWB_RD <= "00100";
-
-wait for 1 ns;
-
-MEMWB_RD <= "01000";
 
 wait;
 
