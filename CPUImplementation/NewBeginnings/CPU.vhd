@@ -450,10 +450,8 @@ begin
 			if WB_CONTROL_VECTOR(2) = '1' then
 		
 					ID_WB_DATA <= WB_DATA;
-					
-				end if;
 				
-			if (WB_INSTR(5 downto 0) = "011000" and WB_INSTR(31 downto 26) = "000000") or (WB_INSTR(5 downto 0) = "011010" and WB_INSTR(31 downto 26) = "000000") then
+			elsif (WB_INSTR(5 downto 0) = "011000" and WB_INSTR(31 downto 26) = "000000") or (WB_INSTR(5 downto 0) = "011010" and WB_INSTR(31 downto 26) = "000000") then
 			
 				HI <= WB_ADDR(63 downto 32);
 				LO <= WB_ADDR(31 downto 0);
