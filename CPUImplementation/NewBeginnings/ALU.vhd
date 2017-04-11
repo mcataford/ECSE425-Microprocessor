@@ -25,11 +25,9 @@ end entity;
 
 architecture ALU_Impl of ALU is
 
-signal test: std_logic_vector(31 downto 0);
-
 begin
 
-	ALU_BEHAVIOUR: process(A,B,INSTR)
+	ALU_BEHAVIOUR: process(A,B,INSTR,ALUOP)
 	
 	begin
 	
