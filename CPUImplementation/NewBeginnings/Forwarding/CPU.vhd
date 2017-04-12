@@ -264,6 +264,7 @@ architecture CPU_Impl of CPU is
 	component FORWARDING_UNIT
 		port(
 			--Inputs
+			clock : in STD_LOGIC;
 			EX_MEM_REGWRITE : in STD_LOGIC;
 			MEM_WB_REGWRITE : in STD_LOGIC;
 			ID_EX_RS : in STD_LOGIC_VECTOR(4 downto 0);
@@ -423,14 +424,15 @@ begin
 	);
 
 	FORWARD : FORWARDING_UNIT port map(
+		CLOCK,
 		--RegisterWrite control from EX/MEM reg
 		MEM_CONTROL_VECTOR(3),
 		--RegisterWrite control from MEM/WB reg
 		WB_CONTROL_VECTOR(3),
 		--Rs from instruction out of ID/EX reg
-		EX_INSTR(20 downto 16),
+		EX_INSTR(25 downto 21),
 		--Rt from instruction out of ID/EX reg
-		EX_INSTR(15 downto 11), --Uncertain if 15 downto 11 or 25 downto 21
+		EX_INSTR(20 downto 16), --Uncertain if 15 downto 11 or 25 downto 21
 		--Rd from instruction out of EX/MEM reg
 		MEM_INSTR(15 downto 11), --Uncertain if 15 downto 11 or 25 downto 21
 		--Rd from instruction out of MEM/WB reg

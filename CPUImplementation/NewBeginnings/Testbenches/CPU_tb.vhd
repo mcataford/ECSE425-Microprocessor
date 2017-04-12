@@ -11,6 +11,7 @@ architecture CPU_tst of CPU_tb is
 	constant CLK_PERIOD: time := 1 ns;
 	
 	signal CLOCK, RESET: std_logic;
+	SIGNAL ENABLE_TEST : std_logic;
 
 	component CPU
 	
@@ -18,14 +19,15 @@ architecture CPU_tst of CPU_tb is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
-			RESET: in std_logic
+			RESET: in std_logic;
+			ENABLE_TEST : in std_logic
 		);
 	
 	end component;
 
 begin
 
-	GLOBAL: CPU port map(CLOCK,RESET);
+	GLOBAL: CPU port map(CLOCK,RESET,ENABLE_TEST);
 	
 	CLK: process
 	
@@ -47,7 +49,16 @@ begin
 		--wait for 1 * CLK_PERIOD;
 		
 		RESET <= '0';
-		
+		ENABLE_TEST <= '1';
+
+		wait for 10 ns;
+
+		ENABLE_TEST <= '0';
+
+		wait for 10 ns;		
+
+		ENABLE_TEST <= '1';
+				
 		wait;
 	
 	end process;

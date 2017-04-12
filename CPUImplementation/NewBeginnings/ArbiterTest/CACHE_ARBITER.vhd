@@ -12,13 +12,22 @@ entity CACHE_ARBITER is
         RD: in std_logic;
         WR : in std_logic;
 
+
         --Input Memory
         WAITREQUEST : in std_logic;
 
 
-        --Output
+        --Output TO Pipeline
         ENABLE_OUT : out std_logic;
         DATA_OUT : out std_logic
+
+        --Output TO Cache
+        C_ADDR : out std_logic_vector(31 downto 0);
+        C_WRITEDATA : out std_logic_vector(31 downto 0);
+        C_
+        C_RD : out std_logic;
+        C_WR : out std_logic;
+        C_
 
     );
 
@@ -43,17 +52,21 @@ signal next_state: state_type;
             begin
                 case current_state is
                         when READY =>
-
-
-
+                            if(RD = '1' OR WR = '1') then
+                                ENABLE_OUT <= '0';
+                                next_state <= REQUEST;
+                            else
+                                next_state <= READY;
+                            end if;
                         when REQUEST =>
+
                         when SERVICE =>
+                        when others =>
+                    
 
 
                 end case;
         end process arbitrate;
-
-
 
 
 

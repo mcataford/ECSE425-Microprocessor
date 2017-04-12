@@ -52,8 +52,7 @@ signal CTRL_REG_WRITE_IN : std_logic;
 signal control : std_logic_vector(9 downto 0);
 
 signal wbreg_out : std_logic_vector(4 downto 0);
-signal pc_out : std_logic_vector(31 downto 0);
-signal SIGN_EXTEND_OUT : std_logic_vector(31 downto 0);
+]signal SIGN_EXTEND_OUT : std_logic_vector(31 downto 0);
 signal r1 : std_logic_vector(31 downto 0);
 signal r2 : std_logic_vector(31 downto 0);
 
