@@ -277,6 +277,34 @@ architecture CPU_Impl of CPU is
 		);
 	
 	end component;
+	
+	component CACHE_ARBITER
+	
+	    port(
+        --Input Pipeline
+        CLOCK : in std_logic;
+        IF_ADDRESS, MEM_ADDRESS : in std_logic_vector(31 downto 0);
+        IF_DATA_IN,MEM_DATA_IN : in std_logic_vector(31 downto 0);
+				IF_RD: in std_logic;
+        IF_WR : in std_logic;
+				MEM_RD: in std_logic;
+				MEM_WR: in std_logic;
+
+        --Input Memory
+        WAITREQUEST : in std_logic;
+
+        --Output
+        ENABLE : out std_logic;
+        DATA_OUT : out std_logic;
+				IF_DATA_OUT, MEM_DATA_OUT: out std_logic_vector(31 downto 0);
+				
+				CACHE_ADDR,CACHE_WRITEDATA: out std_logic_vector(31 downto 0);
+				CACHE_WRITE,CACHE_READ: out std_logic;
+				CACHE_READDATA: in std_logic_vector(31 downto 0)
+
+    );
+		
+	end component;
 
 begin
 

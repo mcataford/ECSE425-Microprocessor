@@ -30,32 +30,36 @@ end cache;
 architecture arch of cache is
 
 --State definitions
---Entry: 
---Decode:
---Hit/Miss:
---Memory:
---Cache:
+--Ready: Cache is ready for a new request
+--Entry: A request has been made, set signals
+--Decode: Place input signals into internal signals for processing and get the row from the 2 cache arrays
+--Hit: When a hit has occured as determined by the Determination state
+--Miss: When a miss has occured as determined by the Determination state
+--WRITE_TO_MEM: When the cache must write some data to memory
+--FETCH_FROM_MEM: When the cache must fetch something from memory
+--MEMORY_WAIT: When the cache is waiting on data to be read or written into the memory
 
 type state_type is (READY,ENTRY,DECODE,HIT,MISS,WRITE_TO_MEM,FETCH_FROM_MEM,DETERMINATION,MEMORY_WAIT);
 
 --- Cache array
---- Cache array location: || 2 Flags: Dirty/Valid | 20 Tag | 32 Data ||
---- 32 blocks leads to array size
---- 152 bits per location in cache array = 2 bits dirty/valid + 20 bits of tag + 128 bits of data
+--- Cache array location: || 2 Flags: Dirty/Valid | 10 Tag | 32 Data ||
 type MEM is array (512 downto 0) of STD_LOGIC_VECTOR(56 downto 0);
+--Initialize to zero
 signal CACHE0 : MEM := (others=>(others=>'0'));
 signal CACHE1 : MEM := (others=>(others=>'0'));
 
--- Current and next state signals
+-- Current, next, previous state signals
 signal current_state: state_type := READY;
 signal next_state: state_type;
 signal previous_state : state_type;
 
-
+--Signals for internal processing from the items given to the cache from the pipeline
 signal TAG : STD_LOGIC_VECTOR (22 downto 0):= (others=>'0');
 signal INDEX : STD_LOGIC_VECTOR (8 downto 0):= (others=>'0');
 signal WRITEDATA : STD_LOGIC_VECTOR(31 downto 0):= (others=>'0');
 
+
+--Signals for internal processing of the items from the 2 cache arrays
 signal ROW0 : STD_LOGIC_VECTOR(56 downto 0):= (others=>'0');
 signal TAG0 : STD_LOGIC_VECTOR(22 downto 0):= (others=>'0');
 signal VALID0 : STD_LOGIC:= '0';
@@ -73,7 +77,7 @@ signal IS_HIT : STD_LOGIC_VECTOR(1 downto 0);
 
 begin
 	
-
+--Process which takes care of setting which cache to evict data from
 cache_controller : process(clock)
 begin
 	if(IS_HIT(1) = '1') then
@@ -83,6 +87,8 @@ begin
 	end if;
 end process cache_controller;
 
+
+--Process for state transitions
 state_transitions: process(clock)
 begin
 	if(rising_edge(clock)) then
@@ -101,14 +107,12 @@ begin
 	if falling_edge(clock) then
 		--Next state becomes current state.
 		-- current_state <= temp_state;
-		-- Branch to behavioural segment based on current state signal.
 		case current_state is
 
 			when READY =>
 
 				next_state<=ENTRY;
 
-			-- Entry state - Waiting on CPU request
 			when ENTRY =>
 				-- Setting of memory control signals low
 				m_read <= '0';
@@ -130,7 +134,6 @@ begin
 				INDEX <= s_addr(8 downto 0);
 				WRITEDATA <= s_writedata;
 				vINDEX <= to_integer(unsigned(s_addr(8 downto 0)));
-				--Determine if hit/miss
 				ROW0 <= CACHE0(to_integer(unsigned(s_addr(8 downto 0))));
 				ROW1 <= CACHE1(to_integer(unsigned(s_addr(8 downto 0))));
 				TAG0 <= CACHE0(to_integer(unsigned(s_addr(8 downto 0))))(54 downto 32);
@@ -139,6 +142,7 @@ begin
 				VALID1 <= CACHE1(to_integer(unsigned(s_addr(8 downto 0))))(56);
 				DIRTY0 <= CACHE0(to_integer(unsigned(s_addr(8 downto 0))))(55);
 				DIRTY1 <= CACHE1(to_integer(unsigned(s_addr(8 downto 0))))(55);
+				--Set waitrequest high as the cache has some work to do
 				s_waitrequest <= '1';
 				next_state<=DETERMINATION;
 
@@ -152,18 +156,20 @@ begin
 				elsif(TAG1 = TAG AND VALID1 = '1') then
 					IS_HIT <= "11";
 					next_state <= HIT;
-				-- If neither those, then its a miss
+				-- If neither those and we're writing, then its a miss and if we can write to either cache0 or cache1, do it
 				elsif(s_write = '1' AND (VALID0 = '0' OR VALID1 = '0')) then
 					IS_HIT <= "00";
 					next_state <= HIT;
+				--Otherwise we need to write to memory and then fetch from memory
 				else
 					IS_HIT <= "00";
 					next_state <= MISS;
 				end if;
 
-				-- The CPU requested a write to the cache. Must determine if hit or miss
 			when HIT =>
+			--If reading
 				if(s_write = '0' and s_read = '1') then
+					--Determine which cache we are effecting
 					case CACHE_CONTROL is
 						when '0' =>
 							s_readdata <= ROW0(31 downto 0);
@@ -174,6 +180,8 @@ begin
 					end case;
 					
 				elsif(s_write = '1' and s_read = '0') then 
+					--Determine which cache we are effecting
+
 					case CACHE_CONTROL is
 						when '0' =>
 							ROW0 <= "11" & TAG & s_writedata;
@@ -185,12 +193,11 @@ begin
 
 					end case;
 				end if;
-				
+				--Done set wiatrequest low
 				s_waitrequest <= '0';
 				next_state <= READY;
 
 
-				-- The CPU requested a write and the item it wanted to write to was in the cache.
 			when MISS =>
 				if((VALID0 = '1' AND DIRTY0 = '1') AND (VALID1 = '1' AND DIRTY1 = '1')) then
 					next_state <= WRITE_TO_MEM;

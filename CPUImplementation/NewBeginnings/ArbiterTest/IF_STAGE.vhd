@@ -108,8 +108,9 @@ begin
 	
 	begin
 
-		if rising_edge(ENABLE) then
-			IR_MEMREAD <= '0';
+		--if rising_edge(ENABLE) then
+		--	IR_MEMREAD <= '0';
+		--end if;
 	
 		if RESET = '1' then
 		
@@ -145,6 +146,10 @@ begin
 				INSTR <= IR_OUT;
 				PC_OUT <= PC_INC;
 				PC_REG <= PC_INC;
+				
+			elsif rising_edge(ENABLE) then
+				
+				IR_MEMREAD <= '0';
 			
 			end if;
 		

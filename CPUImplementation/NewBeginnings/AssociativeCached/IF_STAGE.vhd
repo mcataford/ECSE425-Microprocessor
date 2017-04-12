@@ -17,6 +17,7 @@ entity IF_STAGE is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			ENABLE: in std_logic;
 			--Reset signal
 			RESET: in std_logic;
 			--PC MUX select signal
@@ -117,7 +118,7 @@ begin
 		
 			PC_REG <= x"00000000";
 	
-		elsif falling_edge(CLOCK) then
+		elsif falling_edge(CLOCK) and ENABLE = '1' then
 		
 			if IR_MEMREAD <= '0' then
 			
@@ -141,7 +142,7 @@ begin
 				
 			end if;
 			
-		elsif rising_edge(CLOCK) then
+		elsif rising_edge(CLOCK) and ENABLE = '1' then
 		
 			--if IR_MEMSTALL = '0' then
 			if CACHE_IN(0) = '0' then
@@ -153,7 +154,10 @@ begin
 				PC_REG <= PC_INC;
 			
 			end if;
-		
+		elsif rising_edge(ENABLE) then
+				
+				IR_MEMREAD <= '0';
+				
 		end if;
 	
 	end process;

@@ -73,28 +73,32 @@ architecture CPU_Impl of CPU is
 	signal IF_CACHE_IN, MEM_CACHE_IN: std_logic_vector(32 downto 0);
 	signal MEM_CACHE_OUT, IF_CACHE_OUT: std_logic_vector(65 downto 0);
 
+	signal ENABLE: std_logic:= '1';
+	
 	--Stage components
 	
 	component IF_STAGE
 	
 		port(
-		--INPUT
-		--Clock signal
-		CLOCK: in std_logic;
-		--Reset signal
-		RESET: in std_logic;
-		--PC MUX select signal
-		PC_SEL: in std_logic;
-		--Feedback from ALU for PC calc.
-		ALU_PC: in std_logic_vector(31 downto 0);
-		
-		--OUTPUT
-		--PC output
-		PC_OUT: out std_logic_vector(31 downto 0);
-		--Fetched instruction
-		INSTR: out std_logic_vector(31 downto 0);
-		CACHE_IN: in std_logic_vector(32 downto 0);
-		CACHE_OUT: out std_logic_vector(65 downto 0)
+			--INPUT
+			--Clock signal
+			CLOCK: in std_logic;
+			ENABLE: in std_logic;
+			
+			--Reset signal
+			RESET: in std_logic;
+			--PC MUX select signal
+			PC_SEL: in std_logic;
+			--Feedback from ALU for PC calc.
+			ALU_PC: in std_logic_vector(31 downto 0);
+			
+			--OUTPUT
+			--PC output
+			PC_OUT: out std_logic_vector(31 downto 0);
+			--Fetched instruction
+			INSTR: out std_logic_vector(31 downto 0);
+			CACHE_IN: in std_logic_vector(32 downto 0);
+			CACHE_OUT: out std_logic_vector(65 downto 0)
 		);
 	
 	end component;
@@ -181,6 +185,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			ENABLE: in std_logic;
 			--Reset
 			RESET: in std_logic;
 			--Program counter
@@ -202,6 +207,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			ENABLE: in std_logic;
 			--Reset
 			RESET: in std_logic;
 			--Program counter
@@ -237,6 +243,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			ENABLE: in std_logic;
 			RESET: in std_logic;
 			EX_PC: in std_logic_vector(31 downto 0);
 			--Results
@@ -268,6 +275,7 @@ architecture CPU_Impl of CPU is
 			--INPUT
 			--Clock signal
 			CLOCK: in std_logic;
+			ENABLE: in std_logic;
 			--Reset
 			RESET: in std_logic;
 			--PC
@@ -290,8 +298,8 @@ architecture CPU_Impl of CPU is
 		ram_size : INTEGER := 32768;
 		mem_delay : time := 10 ns;
 		clock_period : time := 1 ns;
-		from_file : boolean := false;
-		file_in : string := "input.txt";
+		from_file : boolean := true;
+		file_in : string := "program.txt";
 		to_file : boolean := true;
 		file_out : string := "output.txt";
 		sim_limit : time := 10000 ns
@@ -333,6 +341,33 @@ architecture CPU_Impl of CPU is
 			m_waitrequest : in std_logic
 		);
 	end component;
+	
+		component CACHE_ARBITER
+	
+	    port(
+        --Input Pipeline
+        CLOCK : in std_logic;
+        IF_ADDRESS, MEM_ADDRESS : in std_logic_vector(31 downto 0);
+        IF_DATA_IN,MEM_DATA_IN : in std_logic_vector(31 downto 0);
+				IF_RD: in std_logic;
+        IF_WR : in std_logic;
+				MEM_RD: in std_logic;
+				MEM_WR: in std_logic;
+
+        --Input Memory
+        WAITREQUEST : in std_logic;
+
+        --Output
+        ENABLE : out std_logic;
+				IF_DATA_OUT, MEM_DATA_OUT: out std_logic_vector(31 downto 0);
+				
+				CACHE_ADDR,CACHE_WRITEDATA: out std_logic_vector(31 downto 0);
+				CACHE_WRITE,CACHE_READ: out std_logic;
+				CACHE_READDATA: in std_logic_vector(31 downto 0)
+
+    );
+		
+	end component;
 
 begin
 
@@ -342,6 +377,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		ENABLE,
 		--PC reset signal
 		RESET,
 		--PC output selection
@@ -363,6 +399,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		ENABLE,
 		--Reset
 		RESET,
 		--Program counter
@@ -405,6 +442,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		ENABLE,
 		--Reset
 		RESET,
 		--Program counter
@@ -457,6 +495,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		ENABLE,
 		RESET,
 		EX_PC,
 		--Results
@@ -504,6 +543,7 @@ begin
 		--INPUT
 		--Clock signal
 		CLOCK,
+		ENABLE,
 		--Reset
 		RESET,
 		--PC
@@ -544,6 +584,31 @@ begin
 		MAIN_MEM_MEMWRITE,
 		MAIN_MEM_WRITEDATA,
 		MAIN_MEM_MEMSTALL
+	);
+	
+	CA: CACHE_ARBITER port map(
+		CLOCK,
+		IF_CACHE_OUT(65 downto 34), 
+		MEM_CACHE_OUT(65 downto 34),
+		IF_CACHE_OUT(33 downto 2),
+		MEM_CACHE_OUT(33 downto 2),
+		IF_CACHE_OUT(1),
+		IF_CACHE_OUT(0),
+		MEM_CACHE_OUT(1),
+		MEM_CACHE_OUT(0),
+
+		--Input Memory
+		CACHE_MEMSTALL,
+
+		--Output
+		ENABLE,
+		IF_CACHE_IN(32 downto 1),
+		MEM_CACHE_OUT(32 downto 1),
+		
+		CACHE_ADDR,CACHE_WRITEDATA,
+		CACHE_MEMWRITE,CACHE_MEMREAD,
+		CACHE_READDATA
+	
 	);
 	
 	BRANCH_SEL <= '1' when EX_CONTROL_VECTOR(7) = '1' or (EX_BRANCH = '1' and EX_INSTR(31 downto 26) = "000100") or (EX_BRANCH = '0' and EX_INSTR(31 downto 26) = "000101" ) else

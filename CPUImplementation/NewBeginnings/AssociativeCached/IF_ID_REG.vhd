@@ -16,6 +16,7 @@ entity IF_ID_REG is
 		--INPUT
 		--Clock signal
 		CLOCK: in std_logic;
+		ENABLE: in std_logic;
 		--Reset
 		RESET: in std_logic;
 		--Program counter
@@ -44,7 +45,7 @@ begin
 				ID_PC <= (others => 'Z');
 				ID_INSTR <= (others => 'Z');
 				
-			elsif rising_edge(CLOCK) then
+			elsif rising_edge(CLOCK) and ENABLE = '1' then
 			
 				ID_PC <= IF_PC;
 				ID_INSTR <= IF_INSTR;
