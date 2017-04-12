@@ -22,8 +22,11 @@ architecture CPU_tst of CPU_tb is
 		);
 	
 	end component;
+		signal ENABLE_TEST: std_logic;
+
 
 begin
+
 
 	GLOBAL: CPU port map(CLOCK,RESET);
 	
@@ -47,6 +50,15 @@ begin
 		--wait for 1 * CLK_PERIOD;
 		
 		RESET <= '0';
+		ENABLE_TEST <= '1';
+		
+		wait for 20 * CLK_PERIOD;
+		
+		ENABLE_TEST <= '0';
+		
+		wait for 5 * CLK_PERIOD;
+		
+		ENABLE_TEST <= '1';
 		
 		wait;
 	

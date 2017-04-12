@@ -9,6 +9,7 @@ entity MEM_WB_REG is
 		--INPUT
 		--Clock signal
 		CLOCK: in std_logic;
+		ENABLE: in std_logic;
 		--Reset
 		RESET: in std_logic;
 		--PC
@@ -40,7 +41,7 @@ begin
 			WB_INSTR <= (others => 'Z');
 			WB_CONTROL_VECTOR <= (others => 'Z');
 			
-		elsif rising_edge(CLOCK) then
+		elsif rising_edge(CLOCK) and ENABLE = '1' then
 		
 			WB_DATA <= MEM_DATA;
 			WB_ADDR <= MEM_ADDR;

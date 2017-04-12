@@ -9,6 +9,7 @@ entity EX_MEM_REG is
 		--INPUT
 		--Clock signal
 		CLOCK: in std_logic;
+		ENABLE: in std_logic;
 		--Reset
 		RESET: in std_logic;
 		--PC
@@ -52,7 +53,7 @@ begin
 			MEM_INSTR <= (others => 'Z');
 			MEM_CONTROL_VECTOR <= (others => 'Z');
 	
-		elsif rising_edge(CLOCK) then
+		elsif rising_edge(CLOCK) and ENABLE = '1' then
 	
 			MEM_PC <= EX_PC;
 			MEM_R <= EX_R;
