@@ -62,8 +62,16 @@ architecture CPU_Impl of CPU is
 	
 	--Main memory
 	signal MAIN_MEM_WRITEDATA, MAIN_MEM_READDATA: std_logic_vector(31 downto 0) := (others => '0');
-	signal MAIN_MEM_WRITEADDR: integer := 0;
+	signal MAIN_MEM_ADDR: integer := 0;
 	signal MAIN_MEM_MEMWRITE, MAIN_MEM_MEMREAD, MAIN_MEM_MEMSTALL: std_logic := '0';
+	
+	--Unified cache
+	signal CACHE_WRITEDATA, CACHE_READDATA, CACHE_ADDR: std_logic_vector(31 downto 0) := (others => '0');
+	signal CACHE_MEMWRITE, CACHE_MEMREAD, CACHE_MEMSTALL: std_logic := '0';
+	
+	--Cache interactions
+	signal IF_CACHE_IN, MEM_CACHE_IN: std_logic_vector(32 downto 0);
+	signal MEM_CACHE_OUT, IF_CACHE_OUT: std_logic_vector(65 downto 0);
 
 	--Stage components
 	
@@ -84,7 +92,9 @@ architecture CPU_Impl of CPU is
 		--PC output
 		PC_OUT: out std_logic_vector(31 downto 0);
 		--Fetched instruction
-		INSTR: out std_logic_vector(31 downto 0)
+		INSTR: out std_logic_vector(31 downto 0);
+		CACHE_IN: in std_logic_vector(32 downto 0);
+		CACHE_OUT: out std_logic_vector(65 downto 0)
 		);
 	
 	end component;
@@ -156,7 +166,9 @@ architecture CPU_Impl of CPU is
 			DATA_PAYLOAD: in std_logic_vector(31 downto 0);
 			
 			--OUTPUT
-			DATA_OUT: out std_logic_vector(31 downto 0)
+			DATA_OUT: out std_logic_vector(31 downto 0);
+			CACHE_IN: in std_logic_vector(32 downto 0);
+			CACHE_OUT: out std_logic_vector(65 downto 0)
 		);
 	
 	end component;
@@ -296,6 +308,31 @@ architecture CPU_Impl of CPU is
 	);
 	
 	end component;
+	
+	component CACHE
+		generic(
+			ram_size : INTEGER := 32768
+		);
+		port(
+			clock : in std_logic;
+			reset : in std_logic;
+			
+			-- Avalon interface --
+			s_addr : in std_logic_vector (31 downto 0);
+			s_read : in std_logic;
+			s_readdata : out std_logic_vector (31 downto 0);
+			s_write : in std_logic;
+			s_writedata : in std_logic_vector (31 downto 0);
+			s_waitrequest : out std_logic; 
+				
+			m_addr : out integer range 0 to ram_size-1;
+			m_read : out std_logic;
+			m_readdata : in std_logic_vector (31 downto 0);
+			m_write : out std_logic;
+			m_writedata : out std_logic_vector (31 downto 0);
+			m_waitrequest : in std_logic
+		);
+	end component;
 
 begin
 
@@ -317,7 +354,9 @@ begin
 		--PC output
 		IF_PC,
 		--Fetched instruction
-		IF_INSTR
+		IF_INSTR,
+		IF_CACHE_IN,
+		IF_CACHE_OUT
 	);
 	
 	IF_ID_R: IF_ID_REG port map(
@@ -456,7 +495,9 @@ begin
 		MEM_B_FW,
 		
 		--OUTPUT
-		MEM_DATAREAD
+		MEM_DATAREAD,
+		IF_CACHE_IN,
+		IF_CACHE_OUT
 	);
 	
 	MEM_WB_R: MEM_WB_REG port map(
@@ -480,10 +521,28 @@ begin
 	MAIN_MEMORY: MEMORY port map(
 		CLOCK,
 		MAIN_MEM_WRITEDATA,
-		MAIN_MEM_WRITEADDR,
+		MAIN_MEM_ADDR,
 		MAIN_MEM_MEMWRITE,
 		MAIN_MEM_MEMREAD,
 		MAIN_MEM_READDATA,
+		MAIN_MEM_MEMSTALL
+	);
+	
+	UNIFIED_CACHE: CACHE port map(
+		CLOCK,
+		RESET,
+		CACHE_ADDR,
+		CACHE_MEMREAD,
+		CACHE_READDATA,
+		CACHE_MEMWRITE,
+		CACHE_WRITEDATA,
+		CACHE_MEMSTALL,
+		
+		MAIN_MEM_ADDR,
+		MAIN_MEM_MEMREAD,
+		MAIN_MEM_READDATA,
+		MAIN_MEM_MEMWRITE,
+		MAIN_MEM_WRITEDATA,
 		MAIN_MEM_MEMSTALL
 	);
 	
